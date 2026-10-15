@@ -162,6 +162,36 @@ def test_phone_needs_the_qr_key(monkeypatch):
         assert phone.get("/api/phone").json()["firewall"] == "skipped" and asked == [8765]  # prompt only on the PC
 
 
+def test_port_owner_tells_this_app_from_others():
+    import http.server
+    import socket
+    import threading
+
+    def serve(body):
+        class H(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(body)
+
+            def log_message(self, *a):
+                pass
+        srv = http.server.HTTPServer(("127.0.0.1", 0), H)
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        return srv
+
+    ours, theirs = serve(b'{"settings": {}}'), serve(b"<html>some other app</html>")
+    try:
+        assert server.port_owner(ours.server_port) == "copilot"  # already running: open it, don't crash
+        assert server.port_owner(theirs.server_port) == "other"
+    finally:
+        ours.shutdown(), theirs.shutdown()
+    with socket.socket() as s:  # a port nobody listens on
+        s.bind(("127.0.0.1", 0))
+        free = s.getsockname()[1]
+    assert server.port_owner(free) is None
+
+
 def test_https_probes_are_explained_once():
     import logging
     f = server.HttpsProbeFilter()

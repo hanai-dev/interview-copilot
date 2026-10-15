@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import ctypes
+import json
 import logging
 import os
 import secrets
@@ -11,6 +12,7 @@ import socket
 import subprocess
 import sys
 import threading
+import urllib.request
 import webbrowser
 from contextlib import asynccontextmanager
 from typing import Optional
@@ -245,6 +247,20 @@ async def ws_endpoint(ws: WebSocket):
     await core.hub.serve(ws, {"info": _info()})
 
 
+def port_owner(port: int) -> Optional[str]:
+    """Who already listens on the port: "copilot" (this app, e.g. a window left open), "other", or None."""
+    try:
+        with socket.create_connection(("127.0.0.1", port), timeout=0.5):
+            pass
+    except OSError:
+        return None
+    try:
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/info", timeout=2) as r:
+            return "copilot" if "settings" in json.load(r) else "other"
+    except (OSError, ValueError):
+        return "other"
+
+
 class HttpsProbeFilter(logging.Filter):
     """Phone browsers try https:// first, which this http-only server logs as "Invalid HTTP request
     received" on every attempt before the browser falls back to http. Explain it once instead."""
@@ -275,6 +291,17 @@ def main() -> None:
 
     _port = args.port
     url = f"http://127.0.0.1:{args.port}"
+    owner = port_owner(args.port)
+    if owner == "copilot":
+        print(f"\n  Interview Copilot is already running at {url} (in another window or in the background).\n"
+              f"  Opening that one. To run it here instead, close the other one first.\n")
+        if not args.no_browser:
+            webbrowser.open(url)
+        return
+    if owner == "other":
+        print(f"\n  Port {args.port} is being used by another program. Close that program, or add the line\n"
+              f"  PORT={args.port + 1} to the .env file in this folder and start again.\n")
+        sys.exit(1)
     if not args.no_browser:
         threading.Timer(1.5, lambda: webbrowser.open(url)).start()
     phone = ("On your phone (same Wi-Fi): click Phone in the app and scan the QR code." if lan_ip()
