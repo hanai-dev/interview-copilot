@@ -61,7 +61,7 @@ class LLM:
                     {"type": "text", "text": instructions},
                     # The documents rarely change during an interview: cache them so each
                     # answer starts faster and costs less.
-                    {"type": "text", "text": docs, "cache_control": {"type": "ephemeral"}},
+                    {"type": "text", "text": docs, "cache_control": {"type": "ephemeral", "ttl": "1h"}},
                 ]
                 # Finished transcript lines are cached too, one block per line, so the next answer
                 # finds this one's cache entry (the API looks back up to 20 blocks for it).
