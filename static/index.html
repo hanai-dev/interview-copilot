@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interview Copilot</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%2712%27 fill=%27%23C8372D%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ground: #E9EDF1;
+  --surface: #FFFFFF;
+  --surface-2: #F4F6F8;
+  --ink: #1B2430;
+  --ink-2: #4A5563;
+  --ink-3: #7B8592;
+  --line: #D5DBE2;
+  --them: #2F5D8A;
+  --them-tint: #E3ECF5;
+  --me: #4F7233;
+  --me-tint: #E8F0E0;
+  --mark: #FFE873;
+  --mark-ink: #2A2300;
+  --rec: #C8372D;
+  --warn-bg: #FFF4D6; --warn-ink: #6B4A00;
+  --err-bg: #FBE4E1; --err-ink: #7A1E14;
+  --focus: #2F5D8A;
+  --scale: 1;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: #11151B; --surface: #192029; --surface-2: #212A35;
+    --ink: #E7EBF0; --ink-2: #B4BDC8; --ink-3: #85909D; --line: #2D3744;
+    --them: #8DB6E0; --them-tint: #1E2F42; --me: #A9CB86; --me-tint: #22301A;
+    --mark: #5C4E0E; --mark-ink: #FFF3B0; --rec: #F0645A;
+    --warn-bg: #3A2F10; --warn-ink: #FFE3A0; --err-bg: #3D1D19; --err-ink: #FFC2B8;
+    --focus: #8DB6E0; color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--ground); color: var(--ink);
+  font-size: calc(16px * var(--scale)); line-height: 1.5;
+  display: flex; flex-direction: column;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* top bar */
+.bar {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.rec-btn {
+  display: inline-flex; align-items: center; gap: 10px; border: 0; cursor: pointer;
+  background: var(--ink); color: var(--surface); padding: 10px 18px 10px 14px; border-radius: 999px;
+  font-weight: 700; font-size: 1.05em; min-width: 132px;
+}
+.rec-btn .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--rec); flex: none; }
+.rec-btn.on { background: var(--rec); color: #fff; }
+.rec-btn.on .dot { background: #fff; border-radius: 3px; }
+.rec-btn:disabled { opacity: .6; cursor: progress; }
+.timer { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 3.6em; color: var(--ink-2); }
+.meters { display: flex; gap: 14px; }
+.meter { display: flex; align-items: center; gap: 6px; font-size: .9em; color: var(--ink-2); }
+.meter i { display: block; width: 64px; height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; border: 1px solid var(--line); }
+.meter b { display: block; height: 100%; width: 0; transition: width .08s linear; }
+.meter.me b { background: var(--me); }
+.meter.them b { background: var(--them); }
+.status { color: var(--ink-3); font-size: .92em; flex: 1; min-width: 120px; }
+.status.err { color: var(--rec); }
+.tools { display: flex; gap: 6px; align-items: center; }
+.ghost {
+  border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 7px 12px; cursor: pointer;
+}
+.ghost:hover { background: var(--surface-2); }
+.ghost .count { display: inline-block; min-width: 1.4em; padding: 0 5px; margin-left: 4px; border-radius: 999px; background: var(--them-tint); color: var(--them); font-weight: 700; font-size: .85em; text-align: center; }
+
+/* main split */
+main { flex: 1; display: grid; grid-template-columns: minmax(280px, 38%) 1fr; min-height: 0; }
+.col { display: flex; flex-direction: column; min-height: 0; }
+.col-head { display: flex; align-items: baseline; justify-content: space-between; padding: 14px 18px 8px; }
+.col-head h2 { margin: 0; font-size: 1em; color: var(--ink-2); font-weight: 700; }
+.col-head small { color: var(--ink-3); }
+.transcript { overflow-y: auto; padding: 0 18px 24px; flex: 1; }
+.answers-col { background: var(--surface); border-left: 1px solid var(--line); }
+.answers { overflow-y: auto; padding: 0 24px 24px; flex: 1; }
+
+/* transcript rows */
+.turn { padding: 8px 12px; margin: 0 0 8px; border-radius: 10px; max-width: 92%; }
+.turn .who { font-weight: 700; font-size: .82em; display: flex; gap: 8px; align-items: center; }
+.turn .txt { overflow-wrap: anywhere; }
+.turn .interim { color: var(--ink-3); }
+.turn.interviewer { background: var(--them-tint); border-left: 4px solid var(--them); border-radius: 0 10px 10px 0; }
+.turn.interviewer .who { color: var(--them); }
+.turn.me { background: var(--me-tint); margin-left: auto; }
+.turn.me .who { color: var(--me); justify-content: flex-end; }
+.chip { font-weight: 400; font-size: .95em; padding: 0 8px; border-radius: 999px; background: var(--surface); color: var(--ink-2); border: 1px solid var(--line); }
+.chip.q { background: var(--mark); color: var(--mark-ink); border-color: transparent; font-weight: 700; }
+
+/* answers */
+.answer { padding: 16px 0 18px; border-bottom: 1px solid var(--line); }
+.answer .q { color: var(--ink-2); font-size: .95em; display: flex; gap: 10px; align-items: baseline; justify-content: space-between; }
+.answer .q span { overflow-wrap: anywhere; }
+.answer .meta { color: var(--ink-3); font-size: .85em; white-space: nowrap; display: flex; gap: 10px; align-items: center; }
+.answer .meta button { border: 0; background: none; color: var(--them); cursor: pointer; padding: 2px 4px; text-decoration: underline; font-size: 1em; }
+.answer .body { font-size: 1.12em; line-height: 1.55; margin-top: 6px; overflow-wrap: anywhere; }
+.answer .body p { margin: 0 0 .5em; }
+.answer .body ul, .answer .body ol { margin: .3em 0 .5em; padding-left: 1.3em; }
+.answer .body li { margin: .2em 0; }
+.answer .body code { background: var(--surface-2); padding: 1px 5px; border-radius: 4px; font-size: .9em; }
+.answer .body pre { background: var(--surface-2); padding: 10px 12px; border-radius: 8px; overflow-x: auto; font-size: .85em; }
+.answer .body pre code { background: none; padding: 0; }
+.answer.latest .body { font-size: 1.38em; }
+.answer.latest .body p:first-child strong, .answer.latest .body > strong:first-child {
+  background: linear-gradient(transparent 12%, var(--mark) 12%, var(--mark) 92%, transparent 92%);
+  color: var(--mark-ink); box-decoration-break: clone; -webkit-box-decoration-break: clone; padding: 0 3px;
+}
+.answer:not(.latest) { opacity: .78; }
+.answer:not(.latest):hover { opacity: 1; }
+.answer .err { color: var(--rec); }
+.cursor::after { content: ""; display: inline-block; width: .5em; height: 1em; background: var(--ink-3); margin-left: 2px; vertical-align: -2px; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .cursor::after { animation: none; } .meter b { transition: none; } }
+
+.ask { display: flex; gap: 8px; padding: 12px 24px 14px; border-top: 1px solid var(--line); background: var(--surface); flex-wrap: wrap; }
+.ask input { flex: 1; min-width: 160px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); }
+.primary { border: 0; border-radius: 8px; padding: 10px 16px; cursor: pointer; background: var(--them); color: #fff; font-weight: 700; }
+@media (prefers-color-scheme: dark) { .primary { color: #0D1720; } }
+.primary:disabled { opacity: .5; cursor: default; }
+
+.empty { color: var(--ink-3); padding: 24px 4px; max-width: 46ch; }
+.empty p { margin: 0 0 10px; }
+.empty b { color: var(--ink-2); }
+
+/* toasts */
+.toasts { position: fixed; bottom: 16px; left: 16px; display: flex; flex-direction: column; gap: 8px; z-index: 30; max-width: min(520px, calc(100vw - 32px)); }
+.toast { padding: 10px 14px; border-radius: 8px; background: var(--ink); color: var(--surface); box-shadow: 0 4px 18px rgba(0,0,0,.18); display: flex; gap: 12px; align-items: flex-start; }
+.toast.warn { background: var(--warn-bg); color: var(--warn-ink); }
+.toast.error { background: var(--err-bg); color: var(--err-ink); }
+.toast button { border: 0; background: none; color: inherit; cursor: pointer; font-size: 1.1em; padding: 0 2px; }
+
+/* drawer + dialog */
+dialog { border: 1px solid var(--line); border-radius: 14px; padding: 0; background: var(--surface); color: var(--ink); width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 48px); }
+dialog::backdrop { background: rgba(10, 16, 24, .45); }
+dialog.drawer { margin: 0 0 0 auto; height: 100vh; max-height: 100vh; border-radius: 0; width: min(440px, 100vw); border-width: 0 0 0 1px; }
+.dlg-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--surface); z-index: 1; }
+.dlg-head h2 { margin: 0; font-size: 1.15em; }
+.dlg-body { padding: 16px 20px 20px; }
+.dlg-foot { padding: 12px 20px 16px; display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--line); position: sticky; bottom: 0; background: var(--surface); }
+fieldset { border: 0; padding: 0; margin: 0 0 18px; }
+legend { font-weight: 700; margin-bottom: 8px; padding: 0; }
+label.field { display: block; margin-bottom: 10px; }
+label.field span { display: block; font-size: .9em; color: var(--ink-2); margin-bottom: 4px; }
+label.field input, label.field select, label.field textarea { width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); }
+label.field small { color: var(--ink-3); display: block; margin-top: 3px; }
+.check { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+.radios { display: flex; gap: 16px; margin-bottom: 10px; }
+.radios label { display: flex; gap: 6px; align-items: center; }
+details summary { cursor: pointer; color: var(--ink-2); margin-bottom: 8px; }
+.drop { border: 2px dashed var(--line); border-radius: 12px; padding: 22px; text-align: center; color: var(--ink-2); cursor: pointer; }
+.drop.over { border-color: var(--them); background: var(--them-tint); }
+.docs { list-style: none; padding: 0; margin: 16px 0; }
+.docs li { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.docs li small { color: var(--ink-3); display: block; }
+.docs li button { border: 0; background: none; color: var(--rec); cursor: pointer; text-decoration: underline; }
+.note { font-size: .9em; color: var(--ink-3); }
+
+@media (max-width: 760px) {
+  main { grid-template-columns: 1fr; grid-template-rows: 40% 60%; }
+  .answers-col { border-left: 0; border-top: 1px solid var(--line); }
+  .meter i { width: 40px; }
+}
+</style>
+</head>
+<body>
+<h1 class="sr-only">Interview Copilot</h1>
+
+<header class="bar">
+  <button id="recBtn" class="rec-btn" type="button"><span class="dot" aria-hidden="true"></span><span id="recLabel">Record</span></button>
+  <span id="timer" class="timer" aria-live="off">0:00</span>
+  <div class="meters" aria-label="Audio levels">
+    <div class="meter me"><span>Me</span><i><b id="lvlMe"></b></i></div>
+    <div class="meter them"><span>Interviewer</span><i><b id="lvlThem"></b></i></div>
+  </div>
+  <div id="status" class="status" role="status">Ready</div>
+  <div class="tools">
+    <button class="ghost" type="button" id="smaller" aria-label="Smaller text">A−</button>
+    <button class="ghost" type="button" id="bigger" aria-label="Larger text">A+</button>
+    <button class="ghost" type="button" id="filesBtn">Files<span class="count" id="docCount">0</span></button>
+    <button class="ghost" type="button" id="settingsBtn">Settings</button>
+  </div>
+</header>
+
+<main>
+  <section class="col" aria-labelledby="tHead">
+    <div class="col-head"><h2 id="tHead">Live transcript</h2><small id="tHint"></small></div>
+    <div id="transcript" class="transcript" aria-live="polite">
+      <div class="empty" id="tEmpty">
+        <p><b>Press Record when your call starts.</b></p>
+        <p>Your microphone is labeled <b>Me</b> and your computer's sound is labeled <b>Interviewer</b>. Wear headphones so your mic doesn't pick up the other person.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="col answers-col" aria-labelledby="aHead">
+    <div class="col-head"><h2 id="aHead">Answers</h2><small id="aHint"></small></div>
+    <div id="answers" class="answers">
+      <div class="empty" id="aEmpty">
+        <p>Answers appear here as soon as the interviewer asks a question, built from the files you add.</p>
+        <p><button class="ghost" type="button" id="demoBtn">Try a demo interview</button></p>
+      </div>
+    </div>
+    <form class="ask" id="askForm">
+      <button class="primary" type="button" id="answerNow" title="Shortcut: A">Answer now</button>
+      <label class="sr-only" for="askInput">Ask the AI</label>
+      <input id="askInput" autocomplete="off" placeholder="Ask anything, e.g. “give me a stronger example”">
+      <button class="ghost" type="submit">Ask</button>
+    </form>
+  </section>
+</main>
+
+<div class="toasts" id="toasts" aria-live="assertive"></div>
+
+<dialog id="filesDlg" class="drawer" aria-labelledby="filesTitle">
+  <div class="dlg-head"><h2 id="filesTitle">Interview files</h2><button class="ghost" type="button" data-close>Close</button></div>
+  <div class="dlg-body">
+    <p class="note">Add the material the interview is based on: your CV, the job description, notes, course material. Every answer uses these files.</p>
+    <label class="drop" id="drop" tabindex="0">
+      <input type="file" id="fileInput" multiple accept=".pdf,.docx,.txt,.md,.csv,.json,.html,.htm" hidden>
+      <b>Drop files here</b> or click to choose<br><small>PDF, Word (.docx), text or Markdown</small>
+    </label>
+    <ul class="docs" id="docList"></ul>
+    <p class="note" id="docTrim" hidden>Your files are very long, so the end of the last ones is left out. Remove files you don't need.</p>
+    <details>
+      <summary>Paste text instead</summary>
+      <label class="field"><span>Name</span><input id="pasteName" value="Job description"></label>
+      <label class="field"><span>Text</span><textarea id="pasteText" rows="7"></textarea></label>
+      <button class="primary" type="button" id="pasteAdd">Add text</button>
+    </details>
+  </div>
+</dialog>
+
+<dialog id="settingsDlg" aria-labelledby="setTitle">
+  <form method="dialog" id="settingsForm">
+    <div class="dlg-head"><h2 id="setTitle">Settings</h2><button class="ghost" type="button" data-close>Close</button></div>
+    <div class="dlg-body">
+      <fieldset>
+        <legend>API keys</legend>
+        <label class="field"><span>Deepgram (live transcription)</span><input type="password" name="deepgram_api_key" autocomplete="off"><small>Get one at console.deepgram.com</small></label>
+        <label class="field"><span>Anthropic (Claude)</span><input type="password" name="anthropic_api_key" autocomplete="off"></label>
+        <label class="field"><span>OpenAI (ChatGPT)</span><input type="password" name="openai_api_key" autocomplete="off"></label>
+        <small class="note">Keys stay on this computer. Leave a field blank to keep the saved key.</small>
+      </fieldset>
+
+      <fieldset>
+        <legend>AI for answers</legend>
+        <div class="radios">
+          <label><input type="radio" name="provider" value="claude"> Claude</label>
+          <label><input type="radio" name="provider" value="openai"> ChatGPT</label>
+        </div>
+        <label class="field"><span>Answer style</span>
+          <select name="answer_style">
+            <option value="talking_points">Talking points (headline + bullets)</option>
+            <option value="full">Full answer I can read out</option>
+            <option value="short">Short (2–3 sentences)</option>
+          </select>
+        </label>
+        <label class="check"><input type="checkbox" name="auto_answer"> Answer automatically when a question is detected</label>
+        <label class="field"><span>Extra instructions</span><textarea name="extra_instructions" rows="3" placeholder="e.g. I'm applying for a junior data analyst role. Keep answers humble and specific."></textarea></label>
+        <details>
+          <summary>Models</summary>
+          <label class="field"><span>Claude answer model</span><input name="claude_answer_model"></label>
+          <label class="field"><span>Claude question-check model</span><input name="claude_fast_model"></label>
+          <label class="field"><span>Claude effort</span><input name="claude_effort"><small>low = fastest first words. Leave blank for the model default.</small></label>
+          <label class="field"><span>OpenAI answer model</span><input name="openai_answer_model"></label>
+          <label class="field"><span>OpenAI question-check model</span><input name="openai_fast_model"></label>
+          <label class="field"><span>OpenAI reasoning effort</span><input name="openai_reasoning_effort"><small>low = fastest. Leave blank if your model doesn't support it.</small></label>
+        </details>
+      </fieldset>
+
+      <fieldset>
+        <legend>Audio</legend>
+        <label class="field"><span>Your microphone (Me)</span><select name="mic_device"></select></label>
+        <label class="field"><span>Call audio output (Interviewer)</span><select name="speaker_device"></select><small>Pick the headphones or speakers your call plays through.</small></label>
+        <p class="note" id="devNote" hidden></p>
+        <label class="field"><span>Language</span><input name="language"><small>en, en-US, es, fr, de, hi, ja… or “multi” for mixed languages</small></label>
+        <label class="field"><span>Key terms</span><input name="keyterms" placeholder="Kubernetes, Ateneo, PostgreSQL"><small>Names and jargon to help transcription, comma-separated</small></label>
+        <label class="field"><span>Transcription model</span><input name="deepgram_model"></label>
+        <label class="check"><input type="checkbox" name="save_audio"> Also save the audio recording</label>
+      </fieldset>
+    </div>
+    <div class="dlg-foot"><button class="ghost" type="button" data-close>Cancel</button><button class="primary" type="submit" id="saveSettings">Save settings</button></div>
+  </form>
+</dialog>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const state = { turns: new Map(), answers: new Map(), detections: {}, status: { state: "idle" }, info: null, latestId: null, scale: 1 };
+
+/* ---------------- helpers ---------------- */
+function esc(s) { return s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function inline(s) {
+  return esc(s)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+}
+function md(text) {
+  const out = []; let list = null; let code = null;
+  const close = () => { if (list) { out.push(`</${list}>`); list = null; } };
+  for (const raw of text.split("\n")) {
+    if (raw.trim().startsWith("```")) {
+      if (code === null) { close(); code = []; } else { out.push(`<pre><code>${esc(code.join("\n"))}</code></pre>`); code = null; }
+      continue;
+    }
+    if (code !== null) { code.push(raw); continue; }
+    const line = raw.trimEnd();
+    let m;
+    if ((m = line.match(/^\s*[-*•]\s+(.*)/))) { if (list !== "ul") { close(); out.push("<ul>"); list = "ul"; } out.push(`<li>${inline(m[1])}</li>`); }
+    else if ((m = line.match(/^\s*\d+[.)]\s+(.*)/))) { if (list !== "ol") { close(); out.push("<ol>"); list = "ol"; } out.push(`<li>${inline(m[1])}</li>`); }
+    else if ((m = line.match(/^#{1,6}\s+(.*)/))) { close(); out.push(`<p><strong>${inline(m[1])}</strong></p>`); }
+    else if (line.trim()) { close(); out.push(`<p>${inline(line)}</p>`); }
+    else close();
+  }
+  if (code !== null) out.push(`<pre><code>${esc(code.join("\n"))}</code></pre>`);
+  close();
+  return out.join("");
+}
+function toast(message, level = "info", ms = 6000) {
+  const el = document.createElement("div");
+  el.className = `toast ${level}`;
+  el.innerHTML = `<span>${esc(message)}</span><button type="button" aria-label="Dismiss">×</button>`;
+  el.querySelector("button").onclick = () => el.remove();
+  $("#toasts").append(el);
+  if (ms) setTimeout(() => el.remove(), level === "error" ? ms * 2 : ms);
+}
+async function api(path, opts = {}) {
+  const res = await fetch(path, { headers: opts.body && !(opts.body instanceof FormData) ? { "Content-Type": "application/json" } : {}, ...opts });
+  let data = null; try { data = await res.json(); } catch { }
+  if (!res.ok) throw new Error((data && data.detail) || `Request failed (${res.status})`);
+  return data;
+}
+const nearBottom = el => el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+
+/* ---------------- transcript ---------------- */
+const DET = { checking: "checking…", question: "question", skip: "no answer needed", error: "check failed" };
+function renderTurn(t) {
+  const box = $("#transcript");
+  const stick = nearBottom(box);
+  $("#tEmpty").hidden = true;
+  let el = document.getElementById(`t${t.id}`);
+  if (!el) {
+    el = document.createElement("div");
+    el.id = `t${t.id}`;
+    el.className = `turn ${t.speaker}`;
+    el.innerHTML = `<div class="who"><span>${t.speaker === "me" ? "Me" : "Interviewer"}</span></div><div class="txt"></div>`;
+    box.append(el);
+  }
+  const fin = esc(t.final || ""); const intr = t.interim ? ` <span class="interim">${esc(t.interim)}</span>` : "";
+  el.querySelector(".txt").innerHTML = fin + intr;
+  renderChip(t.id);
+  if (stick) box.scrollTop = box.scrollHeight;
+}
+function renderChip(id) {
+  const el = document.getElementById(`t${id}`); if (!el) return;
+  const r = state.detections[id]; let chip = el.querySelector(".chip");
+  if (!r) { chip && chip.remove(); return; }
+  if (!chip) { chip = document.createElement("span"); el.querySelector(".who").append(chip); }
+  chip.className = "chip" + (r === "question" ? " q" : "");
+  chip.textContent = DET[r] || r;
+}
+
+/* ---------------- answers ---------------- */
+function renderAnswer(a) {
+  const list = $("#answers");
+  $("#aEmpty").hidden = true;
+  let el = document.getElementById(a.id);
+  if (!el) {
+    el = document.createElement("article");
+    el.id = a.id; el.className = "answer";
+    el.innerHTML = `<div class="q"><span></span><span class="meta"></span></div><div class="body"></div>`;
+    list.prepend(el);
+    if (state.latestId && state.latestId !== a.id) document.getElementById(state.latestId)?.classList.remove("latest");
+    state.latestId = a.id; el.classList.add("latest");
+    list.scrollTop = 0;
+  }
+  el.querySelector(".q span").textContent = (a.manual ? "You asked: " : "") + a.question;
+  const meta = [];
+  if (a.latency_ms != null) meta.push(`first words in ${(a.latency_ms / 1000).toFixed(1)}s`);
+  el.querySelector(".meta").innerHTML = esc(meta.join(" ")) + (a.done && a.text ? ` <button type="button" data-copy>Copy</button>` : "");
+  const body = el.querySelector(".body");
+  body.innerHTML = a.error ? `<p class="err">${esc(a.error)}</p>` + md(a.text || "") : md(a.text || "");
+  body.classList.toggle("cursor", !a.done);
+}
+$("#answers").addEventListener("click", e => {
+  if (!e.target.matches("[data-copy]")) return;
+  const a = state.answers.get(e.target.closest(".answer").id);
+  navigator.clipboard?.writeText(a.text).then(() => { e.target.textContent = "Copied"; setTimeout(() => e.target.textContent = "Copy", 1500); });
+});
+
+/* ---------------- status / recording ---------------- */
+let timerHandle = null;
+function renderStatus() {
+  const s = state.status; const on = ["recording", "connecting", "reconnecting"].includes(s.state);
+  const btn = $("#recBtn");
+  btn.classList.toggle("on", on);
+  $("#recLabel").textContent = on ? "Stop" : "Record";
+  btn.setAttribute("aria-pressed", on);
+  const text = { idle: "Ready", connecting: "Connecting…", recording: s.demo ? "Demo interview playing" : "Listening", reconnecting: "Reconnecting…", error: "Stopped" }[s.state] || s.state;
+  const st = $("#status");
+  st.textContent = s.message ? `${text}: ${s.message}` : text;
+  st.classList.toggle("err", s.state === "error" || (s.state === "idle" && !!s.message));
+  clearInterval(timerHandle);
+  if (on && s.started_at) {
+    const tick = () => { const sec = Math.max(0, Math.floor(Date.now() / 1000 - s.started_at)); $("#timer").textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`; };
+    tick(); timerHandle = setInterval(tick, 1000);
+  }
+  if (!on) { $("#lvlMe").style.width = "0"; $("#lvlThem").style.width = "0"; }
+}
+$("#recBtn").onclick = async () => {
+  const btn = $("#recBtn"); btn.disabled = true;
+  try {
+    const on = ["recording", "connecting", "reconnecting"].includes(state.status.state);
+    if (on) await api("/api/stop", { method: "POST" });
+    else await api("/api/start", { method: "POST", body: JSON.stringify({ demo: false }) });
+  } catch (e) { toast(e.message, "error"); if (/key/i.test(e.message)) openSettings(); }
+  finally { btn.disabled = false; }
+};
+$("#demoBtn").onclick = async () => {
+  try { await api("/api/start", { method: "POST", body: JSON.stringify({ demo: true }) }); }
+  catch (e) { toast(e.message, "error"); }
+};
+
+/* ---------------- ask / answer now ---------------- */
+async function answerNow(question = "") {
+  try { await api("/api/answer", { method: "POST", body: JSON.stringify({ question }) }); }
+  catch (e) { toast(e.message, "warn"); }
+}
+$("#answerNow").onclick = () => answerNow();
+$("#askForm").onsubmit = e => {
+  e.preventDefault();
+  const q = $("#askInput").value.trim(); if (!q) { $("#askInput").focus(); return; }
+  $("#askInput").value = ""; answerNow(q);
+};
+document.addEventListener("keydown", e => {
+  if (e.key.toLowerCase() !== "a" || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.target.closest("input, textarea, select, dialog")) return;
+  e.preventDefault(); answerNow();
+});
+
+/* ---------------- text size ---------------- */
+function setScale(v, save = true) {
+  state.scale = Math.min(2, Math.max(0.7, Math.round(v * 10) / 10));
+  document.documentElement.style.setProperty("--scale", state.scale);
+  if (save) api("/api/settings", { method: "POST", body: JSON.stringify({ font_scale: state.scale }) }).catch(() => { });
+}
+$("#smaller").onclick = () => setScale(state.scale - 0.1);
+$("#bigger").onclick = () => setScale(state.scale + 0.1);
+
+/* ---------------- files ---------------- */
+function renderInfo(info) {
+  state.info = info;
+  const docs = info.docs || [];
+  $("#docCount").textContent = docs.length;
+  $("#docList").innerHTML = docs.length ? docs.map(d =>
+    `<li><span>${esc(d.name)}<small>${d.words.toLocaleString()} words</small></span><button type="button" data-del="${d.id}">Remove</button></li>`
+  ).join("") : `<li><span class="note">No files yet. Answers will be generic until you add your CV or the job description.</span></li>`;
+  $("#docTrim").hidden = !info.docs_trimmed;
+  const s = info.settings;
+  if (s && s.font_scale && s.font_scale !== state.scale) setScale(s.font_scale, false);
+  const keys = s?.keys || {};
+  const provKey = s?.provider === "openai" ? keys.openai_api_key : keys.anthropic_api_key;
+  $("#aHint").textContent = s ? `${s.provider === "openai" ? "ChatGPT" : "Claude"}${provKey ? "" : " (no key yet)"}` : "";
+}
+$("#filesBtn").onclick = () => $("#filesDlg").showModal();
+$("#docList").onclick = async e => {
+  const id = e.target.dataset?.del; if (!id) return;
+  try { renderInfo(await api(`/api/docs/${id}`, { method: "DELETE" })); } catch (err) { toast(err.message, "error"); }
+};
+async function uploadFiles(files) {
+  if (!files.length) return;
+  const fd = new FormData(); [...files].forEach(f => fd.append("files", f));
+  $("#drop").querySelector("b").textContent = "Reading files…";
+  try {
+    const r = await api("/api/docs", { method: "POST", body: fd });
+    renderInfo(r);
+    r.errors.forEach(m => toast(m, "error"));
+    if (r.added.length) toast(`Added ${r.added.map(d => d.name).join(", ")}`);
+  } catch (e) { toast(e.message, "error"); }
+  finally { $("#drop").querySelector("b").textContent = "Drop files here"; $("#fileInput").value = ""; }
+}
+$("#fileInput").onchange = e => uploadFiles(e.target.files);
+const drop = $("#drop");
+drop.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#fileInput").click(); } });
+["dragenter", "dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => uploadFiles(e.dataTransfer.files));
+$("#pasteAdd").onclick = async () => {
+  const text = $("#pasteText").value.trim(); if (!text) { $("#pasteText").focus(); return; }
+  try {
+    renderInfo(await api("/api/docs/text", { method: "POST", body: JSON.stringify({ name: $("#pasteName").value, text }) }));
+    $("#pasteText").value = ""; toast("Text added");
+  } catch (e) { toast(e.message, "error"); }
+};
+
+/* ---------------- settings ---------------- */
+async function openSettings() {
+  const f = $("#settingsForm"); const s = state.info?.settings || {};
+  for (const el of f.elements) {
+    if (!el.name) continue;
+    if (el.name.endsWith("_api_key")) { el.value = ""; el.placeholder = s.keys?.[el.name] ? "Saved (type to replace)" : "Not set"; continue; }
+    if (el.type === "radio") el.checked = s[el.name] === el.value;
+    else if (el.type === "checkbox") el.checked = !!s[el.name];
+    else if (el.tagName !== "SELECT" || !el.name.endsWith("_device")) el.value = s[el.name] ?? "";
+  }
+  $("#settingsDlg").showModal();
+  const mic = f.elements.mic_device, spk = f.elements.speaker_device;
+  mic.innerHTML = spk.innerHTML = `<option value="">Loading…</option>`;
+  try {
+    const d = await api("/api/devices");
+    const opts = (list, sel) => `<option value="">Windows default</option>` + list.map(x => `<option value="${x.index}" ${String(sel) === String(x.index) ? "selected" : ""}>${esc(x.name)}${x.default ? " (default)" : ""}</option>`).join("");
+    mic.innerHTML = opts(d.mics, s.mic_device); spk.innerHTML = opts(d.speakers, s.speaker_device);
+    $("#devNote").hidden = d.available; $("#devNote").textContent = d.available ? "" : d.error;
+  } catch (e) { mic.innerHTML = spk.innerHTML = `<option value="">Windows default</option>`; }
+}
+$("#settingsBtn").onclick = openSettings;
+$("#settingsForm").onsubmit = async e => {
+  e.preventDefault();
+  const f = e.target; const body = {};
+  for (const el of f.elements) {
+    if (!el.name) continue;
+    if (el.type === "radio") { if (el.checked) body[el.name] = el.value; }
+    else if (el.type === "checkbox") body[el.name] = el.checked;
+    else body[el.name] = el.value;
+  }
+  try { renderInfo(await api("/api/settings", { method: "POST", body: JSON.stringify(body) })); $("#settingsDlg").close(); toast("Settings saved"); }
+  catch (err) { toast(err.message, "error"); }
+};
+document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => b.closest("dialog").close());
+document.querySelectorAll("dialog").forEach(d => d.addEventListener("click", e => { if (e.target === d) d.close(); }));
+
+/* ---------------- live events ---------------- */
+function reset() {
+  state.turns.clear(); state.answers.clear(); state.detections = {}; state.latestId = null;
+  $("#transcript").querySelectorAll(".turn").forEach(e => e.remove());
+  $("#answers").querySelectorAll(".answer").forEach(e => e.remove());
+  $("#tEmpty").hidden = false; $("#aEmpty").hidden = false;
+}
+function handle(ev) {
+  switch (ev.type) {
+    case "snapshot":
+      reset();
+      if (ev.info) renderInfo(ev.info);
+      state.detections = Object.fromEntries(Object.entries(ev.detections || {}).map(([k, v]) => [Number(k), v]));
+      ev.turns.forEach(t => { state.turns.set(t.id, t); renderTurn(t); });
+      ev.answers.forEach(a => { state.answers.set(a.id, a); renderAnswer(a); });
+      state.status = ev.status; renderStatus(); break;
+    case "clear": reset(); break;
+    case "turn": state.turns.set(ev.turn.id, ev.turn); renderTurn(ev.turn); break;
+    case "turn_removed": state.turns.delete(ev.id); document.getElementById(`t${ev.id}`)?.remove(); break;
+    case "detector": state.detections[ev.turn_id] = ev.result; renderChip(ev.turn_id); break;
+    case "answer_start": { const a = { ...ev.answer, text: "", done: false }; state.answers.set(a.id, a); renderAnswer(a); break; }
+    case "answer_delta": { const a = state.answers.get(ev.id); if (a) { a.text += ev.text; renderAnswer(a); } break; }
+    case "answer_done": { const a = state.answers.get(ev.id); if (a) { Object.assign(a, { done: true, error: ev.error, latency_ms: ev.latency_ms ?? a.latency_ms }); renderAnswer(a); } break; }
+    case "status": state.status = ev; renderStatus(); break;
+    case "levels":
+      $("#lvlMe").style.width = `${Math.round(ev.me * 100)}%`;
+      $("#lvlThem").style.width = `${Math.round(ev.interviewer * 100)}%`; break;
+    case "notice": toast(ev.message, ev.level || "info", ev.level === "info" ? 5000 : 9000); break;
+    case "saved": toast(`Transcript saved to ${ev.path}`, "info", 8000); break;
+  }
+}
+function connect() {
+  const ws = new WebSocket(`ws://${location.host}/ws`);
+  ws.onmessage = m => handle(JSON.parse(m.data));
+  ws.onclose = () => { $("#status").textContent = "Lost connection to the app. Is its window still open? Retrying…"; setTimeout(connect, 1500); };
+}
+connect();
+</script>
+</body>
+</html>
