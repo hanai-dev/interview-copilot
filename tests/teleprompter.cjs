@@ -36,6 +36,11 @@ const state = page => page.evaluate(() => {
   const nowTop = now >= 0 ? words[now].getBoundingClientRect().top - box.getBoundingClientRect().top : null;
   return { scroll: box.scrollTop, height: box.clientHeight, now, nowTop, read: words.filter(w => w.classList.contains("read")).length, total: words.length };
 });
+// Visible elements with a light background (what would glow in your glasses).
+const litBackgrounds = async page => (await page.evaluate(() => [...document.querySelectorAll("body, body *")]
+  .filter(el => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return cs.display !== "none" && cs.visibility !== "hidden" && r.width > 0 && r.height > 0; })
+  .map(el => [el.tagName + (el.id ? "#" + el.id : "") + (typeof el.className === "string" && el.className ? "." + el.className.split(" ").join(".") : ""), getComputedStyle(el).backgroundColor])))
+  .filter(([, bg]) => lum(bg) > 0.05);
 const expectedPos = words => { const f = new Follower(ANSWER.replace(/\*\*/g, "").replace(/^\s*-\s+/gm, "").split(/\s+/).filter(w => norm(w))); words.forEach(w => f.feed(w)); return f.pos; };
 
 (async () => {
@@ -80,6 +85,24 @@ const expectedPos = words => { const f = new Follower(ANSWER.replace(/\*\*/g, ""
     ok("U1", lum(colors.body) === 0 && lit.length === 0, `body ${colors.body}; light backgrounds: ${JSON.stringify(lit.slice(0, 4))}`);
     const tl = lum(colors.text), contrast = (tl + 0.05) / 0.05;
     ok("U2", tl <= 0.30 && contrast >= 4.5, `unread text ${colors.text} luminance ${tl.toFixed(3)} contrast ${contrast.toFixed(1)}:1`);
+
+    // F6/U5/U6: Record works from the phone (requests intercepted: nothing really records) and stays dark
+    let started = 0, stopped = 0;
+    await phone.route("**/api/start", r => { started++; r.fulfill({ json: { ok: true } }); });
+    await phone.route("**/api/stop", r => { stopped++; r.fulfill({ json: { ok: true, saved: null } }); });
+    const recShown = await phone.evaluate(() => { const b = document.querySelector("#recBtn"), r = b.getBoundingClientRect(); return getComputedStyle(b).display !== "none" && r.width > 0; });
+    const share = await phone.evaluate(() => document.querySelector(".answers-col").getBoundingClientRect().height / innerHeight);
+    await phone.click("#recBtn");
+    await phone.evaluate(() => handle({ type: "status", state: "recording", message: "", started_at: Date.now() / 1000, demo: false }));
+    const recLabel = await phone.textContent("#recLabel");
+    const litRecording = await litBackgrounds(phone);
+    if (shots) await phone.screenshot({ path: path.join(shots, "phone-recording.png") });
+    await phone.click("#recBtn");
+    await phone.evaluate(() => handle({ type: "status", state: "idle", message: "", started_at: null, demo: false }));
+    await phone.unroute("**/api/start"); await phone.unroute("**/api/stop");
+    ok("F6", recShown && started === 1 && recLabel === "Stop" && stopped === 1, `shown=${recShown} start requests=${started} label while recording="${recLabel}" stop requests=${stopped}`);
+    ok("U5", litRecording.length === 0, `light backgrounds while recording: ${JSON.stringify(litRecording.slice(0, 4))}`);
+    ok("U6", share >= 0.75, `answers ${Math.round(share * 100)}% of screen with Record in the header`);
 
     // F2: read along: position marked, kept in the upper part of the window while scrolling
     const part = SAID.slice(0, 95);
