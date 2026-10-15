@@ -3,10 +3,13 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import ctypes
 import logging
 import os
 import secrets
 import socket
+import subprocess
+import sys
 import threading
 import webbrowser
 from contextlib import asynccontextmanager
@@ -75,6 +78,25 @@ def lan_ip() -> Optional[str]:
     return None if ip.startswith("127.") else ip
 
 
+def ensure_firewall(port: int) -> str:
+    """Windows: a one-time firewall rule so devices on your own network (your phone) can connect.
+    Adding it needs admin rights, so Windows asks once. Returns ok, added, declined or skipped."""
+    if sys.platform != "win32":
+        return "skipped"
+    name = f"Interview Copilot (port {port})"
+    try:
+        if subprocess.run(["netsh", "advfirewall", "firewall", "show", "rule", f"name={name}"],
+                          capture_output=True, timeout=15).returncode == 0:
+            return "ok"
+    except (OSError, subprocess.SubprocessError):
+        return "skipped"
+    # Only devices on your own subnet, on any network type, so the Wi-Fi can stay "Public".
+    args = (f'advfirewall firewall add rule name="{name}" dir=in action=allow protocol=TCP '
+            f"localport={port} remoteip=localsubnet")
+    shown = ctypes.windll.shell32.ShellExecuteW(None, "runas", "netsh", args, None, 0)  # Windows permission prompt
+    return "added" if shown > 32 else "declined"
+
+
 @app.middleware("http")
 async def phone_key_gate(request: Request, call_next):
     host = request.client.host if request.client else None
@@ -121,13 +143,17 @@ async def devices():
 
 
 @app.get("/api/phone")
-async def phone():
+async def phone(request: Request):
     ip = lan_ip()
     if not ip:
-        return {"url": None, "qr": None}
+        return {"url": None, "qr": None, "firewall": "skipped"}
+    # Only when clicked on this computer: that's where Windows shows its permission prompt.
+    local = request.client is not None and request.client.host in _LOCAL
+    firewall = await asyncio.to_thread(ensure_firewall, _port) if local else "skipped"
     import segno
     url = f"http://{ip}:{_port}/?k={PHONE_KEY}"
-    return {"url": url, "qr": segno.make(url, error="m").svg_data_uri(scale=8, dark="#000", light="#fff")}
+    return {"url": url, "qr": segno.make(url, error="m").svg_data_uri(scale=8, dark="#000", light="#fff"),
+            "firewall": firewall}
 
 
 @app.post("/api/settings")

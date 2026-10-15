@@ -139,9 +139,12 @@ def test_phone_needs_the_qr_key(monkeypatch):
     import pytest
     from starlette.websockets import WebSocketDisconnect
     monkeypatch.setattr(server, "lan_ip", lambda: "192.168.1.20")
+    asked = []
+    monkeypatch.setattr(server, "ensure_firewall", lambda port: asked.append(port) or "ok")  # no real prompt
     with TestClient(server.app, client=("127.0.0.1", 50000)) as pc:
         p = pc.get("/api/phone").json()  # this computer needs no key
         assert p["url"] == f"http://192.168.1.20:8765/?k={server.PHONE_KEY}" and p["qr"].startswith("data:image/svg")
+        assert p["firewall"] == "ok" and asked == [8765]
 
     with TestClient(server.app, client=("192.168.1.50", 50000)) as phone:  # another device on the Wi-Fi
         assert phone.get("/").status_code == 403
@@ -155,3 +158,29 @@ def test_phone_needs_the_qr_key(monkeypatch):
         assert phone.get("/").status_code == 200 and phone.get("/api/info").status_code == 200  # cookie from now on
         with phone.websocket_connect("/ws") as ws:
             assert ws.receive_json()["type"] == "snapshot"
+        assert phone.get("/api/phone").json()["firewall"] == "skipped" and asked == [8765]  # prompt only on the PC
+
+
+def test_firewall_rule_is_added_once(monkeypatch):
+    import subprocess
+    import types
+    monkeypatch.setattr(server.sys, "platform", "win32")
+    exists = {"rule": False}
+    monkeypatch.setattr(server.subprocess, "run",
+                        lambda cmd, **kw: subprocess.CompletedProcess(cmd, 0 if exists["rule"] else 1))
+    prompts = []
+    answer = {"code": 42}  # ShellExecuteW: > 32 means Windows ran it after the user said yes
+
+    def shell_execute(hwnd, verb, exe, args, cwd, show):
+        prompts.append((verb, exe, args))
+        return answer["code"]
+    monkeypatch.setattr(server.ctypes, "windll",
+                        types.SimpleNamespace(shell32=types.SimpleNamespace(ShellExecuteW=shell_execute)), raising=False)
+
+    assert server.ensure_firewall(8765) == "added"
+    verb, exe, args = prompts[0]
+    assert verb == "runas" and exe == "netsh" and "localport=8765" in args and "remoteip=localsubnet" in args
+    answer["code"] = 5  # the user clicked No
+    assert server.ensure_firewall(8765) == "declined"
+    exists["rule"] = True
+    assert server.ensure_firewall(8765) == "ok" and len(prompts) == 2  # never asks again once the rule exists

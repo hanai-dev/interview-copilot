@@ -236,7 +236,7 @@ details summary { cursor: pointer; color: var(--ink-2); margin-bottom: 8px; }
   <div class="dlg-body phone">
     <img id="phoneQr" alt="QR code that opens Interview Copilot on your phone">
     <p>Scan this with your phone's camera. Your phone needs to be on the same Wi-Fi as this computer.</p>
-    <p class="note">If it doesn't load, allow Python through Windows Firewall and set this Wi-Fi to a private network.</p>
+    <p class="note">If it still doesn't load, this Wi-Fi may stop devices from reaching each other (common on guest networks).</p>
   </div>
 </dialog>
 
@@ -498,6 +498,8 @@ $("#phoneBtn").onclick = async () => {
     if (!p.qr) return toast("Connect this computer to Wi-Fi first, then try again.", "warn");
     $("#phoneQr").src = p.qr;
     $("#phoneDlg").showModal();
+    if (p.firewall === "added") toast("Windows Firewall now lets your phone connect.");
+    if (p.firewall === "declined") toast("Windows didn't give permission, so your phone may not connect. Click Phone again to retry.", "warn");
   } catch (err) { toast(err.message, "error"); }
 };
 $("#docList").onclick = async e => {
