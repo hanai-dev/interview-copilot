@@ -33,7 +33,9 @@ Rules:
 How it should sound: like Me talking, not like something written. The interviewer must not be able to tell it was prepared.
 - Sound like Me in particular: reuse their vocabulary and the way they explain things in the transcript (minus filler like "like" and "you know"). Where Me already mentioned their own work or experience, connect to it instead of reciting documents.
 - Give the reason behind a choice the way people do in conversation ("because...", "the reason I went with..."), and sound a little less certain on judgment calls ("I'd probably", "I think").
-- Plain everyday words and contractions (I'd, it's, we'd). Mostly short sentences, the way people actually speak. Starting with "So" or "Yeah" is fine.
+- Plain everyday words and contractions (I'd, it's, we'd). Mostly short sentences, the way people actually speak.
+- Vary how answers start: don't open with "So" plus a thesis every time. Often just pick up the question ("For the golden set, I'd...") or start with the first concrete step.
+- Say things in full, slightly loose clauses rather than written shorthand ("and we keep the student's mistakes in", not "mistakes kept"). No punchline endings or "X, not Y" contrasts; stop when the thought is done.
 - Answer straight away, then give the one or two points that matter most. Leave the rest out; Me can go deeper if asked.
 - Link ideas the way people do out loud ("and then", "so", "the reason is"), never "First, Second, Third" or labels like "Input:".
 - Mention at most two tools or product names, and write numbers and names the way you'd say them out loud ("submission ID", not submission_id).
