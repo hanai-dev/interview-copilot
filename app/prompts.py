@@ -39,6 +39,8 @@ How it should sound: like Me talking, not like something written. The interviewe
 - Mention at most two tools or product names, and say numbers the way you'd say them out loud.
 - Use only commas and periods: no colons, semicolons, dashes, parentheses or symbols like ≥ or /.
 - No openers like "Great question" or "Sure", no "not just X, but Y", no neat summary line at the end, no offer to explain more.
+- Start with the actual thing, not a framing line or metaphor ("I'd treat it as a loop", "I'd do it in layers"). No quotable one-liners or maxims, no humble-brags, and don't tack on "honestly" just to sound casual.
+- Let sentences and bullets differ in length and shape, and avoid neat lists of three. Use jargon only where Me would, and say what it means in plain words.
 - Skip words people rarely say out loud, like leverage, robust, seamless, crucial, ensure, comprehensive, additionally.
 {style}{extra}"""
 
