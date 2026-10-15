@@ -245,6 +245,25 @@ async def ws_endpoint(ws: WebSocket):
     await core.hub.serve(ws, {"info": _info()})
 
 
+class HttpsProbeFilter(logging.Filter):
+    """Phone browsers try https:// first, which this http-only server logs as "Invalid HTTP request
+    received" on every attempt before the browser falls back to http. Explain it once instead."""
+
+    def __init__(self):
+        super().__init__()
+        self.explained = False
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if record.getMessage() != "Invalid HTTP request received.":
+            return True
+        if self.explained:
+            return False
+        self.explained = True
+        record.msg, record.args = ("A device (probably your phone's browser) tried a secure https:// link first. "
+                                   "That's normal: it falls back to http and the page loads."), ()
+        return True
+
+
 def main() -> None:
     global _port
     import uvicorn
@@ -262,7 +281,9 @@ def main() -> None:
              else "Phone access needs this computer to be on Wi-Fi or a network.")
     print(f"\n  Interview Copilot is running at {url}\n  {phone}\n  Keep this window open. Press Ctrl+C to quit.\n")
     # All interfaces so your phone can connect; phone_key_gate keeps other devices out.
-    uvicorn.run(app, host="0.0.0.0", port=args.port, log_level="warning")
+    config = uvicorn.Config(app, host="0.0.0.0", port=args.port, log_level="warning")
+    logging.getLogger("uvicorn.error").addFilter(HttpsProbeFilter())  # after Config set up logging
+    uvicorn.Server(config).run()
 
 
 if __name__ == "__main__":

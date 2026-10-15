@@ -161,6 +161,16 @@ def test_phone_needs_the_qr_key(monkeypatch):
         assert phone.get("/api/phone").json()["firewall"] == "skipped" and asked == [8765]  # prompt only on the PC
 
 
+def test_https_probes_are_explained_once():
+    import logging
+    f = server.HttpsProbeFilter()
+    rec = lambda msg: logging.LogRecord("uvicorn.error", logging.WARNING, __file__, 1, msg, (), None)
+    first = rec("Invalid HTTP request received.")
+    assert f.filter(first) and "https" in first.getMessage()
+    assert not f.filter(rec("Invalid HTTP request received."))  # the repeats are dropped
+    assert f.filter(rec("Something else went wrong"))  # other warnings still show
+
+
 def test_firewall_rule_is_added_once(monkeypatch):
     import subprocess
     import types

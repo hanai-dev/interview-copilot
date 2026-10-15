@@ -51,6 +51,8 @@ Then:
 
 Click **Phone** and scan the QR code with your phone's camera. The phone shows the same live transcript and answers, and its buttons work too (Answer now, Ask, Record). Your phone must be on the same Wi-Fi as the computer. The first time you click **Phone**, Windows asks for permission once ("Network Command Shell"): click **Yes**. That adds one firewall rule letting devices on your own Wi-Fi reach the app, on any network type, so there's no need to change your Wi-Fi to Private. If the phone still can't connect, the Wi-Fi may stop devices from reaching each other, which is common on guest networks.
 
+Phone browsers try a secure `https://` link first. This app uses plain `http` on your own network, so the browser falls back to it (the app's window notes this once). If your browser is set to always require secure connections, it shows a warning page: tap **Continue**. Because the link is plain `http`, someone else on a public Wi-Fi could in principle see what's sent between the computer and your phone, so use phone access on your own Wi-Fi.
+
 Only this computer and devices that scanned the QR code can open the app; anyone else on the Wi-Fi gets "access denied". To lock out phones you used before, delete `data\phone_key` and restart.
 
 ### Settings worth knowing
