@@ -440,7 +440,7 @@ function renderAnswer(a) {
 const phoneView = matchMedia("(max-width: 760px)");
 const calmMotion = matchMedia("(prefers-reduced-motion: reduce)");
 const clock = () => performance.now() / 1000;
-const tp = { id: null, spans: [], follower: null, heard: new Map(), on: true };
+const tp = { id: null, spans: [], follower: null, heard: new Map(), on: true, pace: new Follow.Pace(), creep: 0, pausedUntil: 0 };
 const spoken = t => `${t.final || ""} ${t.interim || ""}`.trim().split(/\s+/).filter(Boolean);
 
 function markWords(body) {
@@ -461,7 +461,7 @@ function markWords(body) {
   return spans;
 }
 function tpStart(id) {  // a new newest answer: start at its top, ignore words said before it appeared
-  Object.assign(tp, { id, spans: [], follower: null, lastMatch: clock() });
+  Object.assign(tp, { id, spans: [], follower: null, lastMatch: clock(), creep: 0 });
   tp.heard = new Map([...state.turns.values()].filter(t => t.speaker === "me").map(t => [t.id, spoken(t).length]));
 }
 function tpRender(el) {
@@ -481,19 +481,36 @@ function tpHeard(t) {
   const words = spoken(t), seen = tp.heard.get(t.id) || 0;
   tp.heard.set(t.id, words.length);
   let moved = false;
-  for (const w of words.slice(seen)) moved = tp.follower.feed(w) || moved;
+  for (const w of words.slice(seen)) { tp.pace.word(clock()); moved = tp.follower.feed(w) || moved; }
   if (!moved) return;
-  tp.lastMatch = clock();
+  Object.assign(tp, { lastMatch: clock(), creep: 0 });
   tpPaint();
   tpScroll(true);
 }
 function tpScroll(smooth) {  // keep your place about a third of the way down; only ever scroll forward
-  if (!tp.on || !phoneView.matches || !tp.follower) return;
-  const box = $("#answers"), s = tp.spans[Math.min(tp.follower.pos, tp.spans.length - 1)];
+  if (!tp.on || !phoneView.matches || !tp.follower || clock() < tp.pausedUntil) return;
+  const box = $("#answers"), s = tp.spans[Math.min(tp.follower.pos + Math.floor(tp.creep), tp.spans.length - 1)];
   if (!s) return;
   const top = box.scrollTop + s.getBoundingClientRect().top - box.getBoundingClientRect().top - box.clientHeight * 0.3;
   if (top > box.scrollTop + 2) box.scrollTo({ top, behavior: smooth && !calmMotion.matches ? "smooth" : "auto" });
 }
+// Adaptive: still talking but nothing matched for a moment (misheard, or saying it your own way)?
+// Keep moving at your speaking pace, up to 15 words past the last match; hold still when you stop.
+setInterval(() => {
+  const t = clock(), dt = t - (tp.lastTick ?? t);
+  tp.lastTick = t;
+  if (!tp.follower || !tp.pace.speaking(t) || t - tp.lastMatch < 1.5 || tp.creep >= 15) return;
+  tp.creep = Math.min(15, tp.creep + dt * tp.pace.rate(t));
+  tpScroll(false);
+}, 200);
+for (const type of ["touchstart", "wheel", "pointerdown"]) {  // you scrolled yourself: leave it alone for a bit
+  $("#answers").addEventListener(type, () => { tp.pausedUntil = clock() + 4; }, { passive: true });
+}
+$("#followBtn").onclick = () => {
+  tp.on = !tp.on;
+  $("#followBtn").setAttribute("aria-pressed", tp.on);
+  if (tp.on) { tp.pausedUntil = 0; tpScroll(true); }
+};
 
 $("#answers").addEventListener("click", e => {
   if (!e.target.matches("[data-copy]")) return;
