@@ -128,12 +128,16 @@ const expectedPos = words => { const f = new Follower(ANSWER.replace(/\*\*/g, ""
     await cp.goto(url);
     await cp.waitForFunction(() => typeof handle === "function");
     await answer(cp, "tp4", ANSWER);
+    await say(cp, 949, part);  // read along first, so your place sits on the reading line
+    await cp.waitForTimeout(1000);
+    const reading = (await state(cp)).scroll;
     const filler = "well you know honestly it really depends on the team and how much time we have for it".split(" ");
     for (let i = 1; i <= filler.length; i++) { await say(cp, 950, filler.slice(0, i)); await cp.clock.runFor(400); }
     const crept = (await state(cp)).scroll;
     await cp.clock.runFor(4000);
     const held = (await state(cp)).scroll;
-    ok("F3", crept > 0 && held === crept, `scroll while talking off-script ${crept}, after 4 s silence ${held}`);
+    ok("F3", reading > 0 && crept > reading && held === crept,
+      `at reading line ${reading}, after talking off-script ${crept}, after 4 s silence ${held}`);
 
     // U4: reduced motion jumps straight to the spot (no smooth animation)
     const rmCtx = await browser.newContext({ ...devices["iPhone 13"], reducedMotion: "reduce" });

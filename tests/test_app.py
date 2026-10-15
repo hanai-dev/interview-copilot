@@ -149,6 +149,7 @@ def test_phone_needs_the_qr_key(monkeypatch):
     with TestClient(server.app, client=("192.168.1.50", 50000)) as phone:  # another device on the Wi-Fi
         assert phone.get("/").status_code == 403
         assert phone.get("/api/info").status_code == 403
+        assert phone.get("/static/follow.js").status_code == 403  # page scripts too
         assert phone.get("/?k=wrong").status_code == 403
         with pytest.raises(WebSocketDisconnect):
             with phone.websocket_connect("/ws"):
