@@ -171,6 +171,8 @@ details summary { cursor: pointer; color: var(--ink-2); margin-bottom: 8px; }
 .docs li small { color: var(--ink-3); display: block; }
 .docs li button { border: 0; background: none; color: var(--rec); cursor: pointer; text-decoration: underline; }
 .note { font-size: .9em; color: var(--ink-3); }
+.phone { text-align: center; }
+.phone img { width: min(300px, 70vw); height: auto; border-radius: 8px; }
 
 @media (max-width: 760px) {
   main { grid-template-columns: 1fr; grid-template-rows: 40% 60%; }
@@ -195,6 +197,7 @@ details summary { cursor: pointer; color: var(--ink-2); margin-bottom: 8px; }
     <button class="ghost" type="button" id="bigger" aria-label="Larger text">A+</button>
     <button class="ghost" type="button" id="filesBtn">Files<span class="count" id="docCount">0</span></button>
     <button class="ghost" type="button" id="settingsBtn">Settings</button>
+    <button class="ghost" type="button" id="phoneBtn">Phone</button>
   </div>
 </header>
 
@@ -227,6 +230,15 @@ details summary { cursor: pointer; color: var(--ink-2); margin-bottom: 8px; }
 </main>
 
 <div class="toasts" id="toasts" aria-live="assertive"></div>
+
+<dialog id="phoneDlg" aria-labelledby="phoneTitle">
+  <div class="dlg-head"><h2 id="phoneTitle">Open on your phone</h2><button class="ghost" type="button" data-close>Close</button></div>
+  <div class="dlg-body phone">
+    <img id="phoneQr" alt="QR code that opens Interview Copilot on your phone">
+    <p>Scan this with your phone's camera. Your phone needs to be on the same Wi-Fi as this computer.</p>
+    <p class="note">If it doesn't load, allow Python through Windows Firewall and set this Wi-Fi to a private network.</p>
+  </div>
+</dialog>
 
 <dialog id="filesDlg" class="drawer" aria-labelledby="filesTitle">
   <div class="dlg-head"><h2 id="filesTitle">Interview files</h2><button class="ghost" type="button" data-close>Close</button></div>
@@ -480,6 +492,14 @@ function renderInfo(info) {
   $("#aHint").textContent = s ? `${s.provider === "openai" ? "ChatGPT" : "Claude"}${provKey ? "" : " (no key yet)"}` : "";
 }
 $("#filesBtn").onclick = () => $("#filesDlg").showModal();
+$("#phoneBtn").onclick = async () => {
+  try {
+    const p = await api("/api/phone");
+    if (!p.qr) return toast("Connect this computer to Wi-Fi first, then try again.", "warn");
+    $("#phoneQr").src = p.qr;
+    $("#phoneDlg").showModal();
+  } catch (err) { toast(err.message, "error"); }
+};
 $("#docList").onclick = async e => {
   const id = e.target.dataset?.del; if (!id) return;
   try { renderInfo(await api(`/api/docs/${id}`, { method: "DELETE" })); } catch (err) { toast(err.message, "error"); }

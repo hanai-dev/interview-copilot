@@ -47,6 +47,12 @@ Then:
 - **A− / A+** change the text size.
 - When you press **Stop**, the transcript and answers are saved to `data\sessions\`.
 
+### On your phone
+
+Click **Phone** and scan the QR code with your phone's camera. The phone shows the same live transcript and answers, and its buttons work too (Answer now, Ask, Record). Your phone must be on the same Wi-Fi as the computer. The first time, Windows asks whether Python may use the network: allow it on private networks. If the phone can't connect, set your Wi-Fi to **Private** in Windows network settings.
+
+Only this computer and devices that scanned the QR code can open the app; anyone else on the Wi-Fi gets "access denied". To lock out phones you used before, delete `data\phone_key` and restart.
+
 ### Settings worth knowing
 
 | Setting | What it does |

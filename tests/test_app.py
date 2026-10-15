@@ -53,7 +53,7 @@ def test_demo_interview_end_to_end(monkeypatch):
     fake = FakeLLM()
     monkeypatch.setattr(server.core, "llm", fake)
 
-    with TestClient(server.app) as client:
+    with TestClient(server.app, client=("127.0.0.1", 50000)) as client:
         assert client.get("/").status_code == 200
         r = client.post("/api/docs/text", json={"name": "CV", "text": "Jane Cruz, Python developer"})
         assert r.json()["docs"][0]["name"] == "CV"
@@ -112,7 +112,7 @@ def test_demo_interview_end_to_end(monkeypatch):
 
 
 def test_settings_and_errors():
-    with TestClient(server.app) as client:
+    with TestClient(server.app, client=("127.0.0.1", 50000)) as client:
         info = client.post("/api/settings", json={
             "provider": "openai", "answer_style": "full", "anthropic_api_key": "sk-ant-x",
             "mic_device": "", "auto_answer": False, "font_scale": 9}).json()
@@ -133,3 +133,25 @@ def test_settings_and_errors():
         # Bad upload
         r = client.post("/api/docs", files=[("files", ("x.png", b"123", "image/png"))]).json()
         assert r["errors"] and not r["added"]
+
+
+def test_phone_needs_the_qr_key(monkeypatch):
+    import pytest
+    from starlette.websockets import WebSocketDisconnect
+    monkeypatch.setattr(server, "lan_ip", lambda: "192.168.1.20")
+    with TestClient(server.app, client=("127.0.0.1", 50000)) as pc:
+        p = pc.get("/api/phone").json()  # this computer needs no key
+        assert p["url"] == f"http://192.168.1.20:8765/?k={server.PHONE_KEY}" and p["qr"].startswith("data:image/svg")
+
+    with TestClient(server.app, client=("192.168.1.50", 50000)) as phone:  # another device on the Wi-Fi
+        assert phone.get("/").status_code == 403
+        assert phone.get("/api/info").status_code == 403
+        assert phone.get("/?k=wrong").status_code == 403
+        with pytest.raises(WebSocketDisconnect):
+            with phone.websocket_connect("/ws"):
+                pass
+        r = phone.get(f"/?k={server.PHONE_KEY}", follow_redirects=False)  # scanned the QR code
+        assert r.status_code == 303 and r.headers["location"].endswith("/") and "k=" not in r.headers["location"]
+        assert phone.get("/").status_code == 200 and phone.get("/api/info").status_code == 200  # cookie from now on
+        with phone.websocket_connect("/ws") as ws:
+            assert ws.receive_json()["type"] == "snapshot"

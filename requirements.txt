@@ -9,5 +9,6 @@ pypdf>=4.0
 python-docx>=1.1
 anthropic>=0.40
 openai>=1.50
+segno>=1.6
 # Windows-only: captures your mic and the PC's speaker audio (WASAPI loopback)
 PyAudioWPatch>=0.2.12; sys_platform == "win32"

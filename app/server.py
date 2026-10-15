@@ -5,16 +5,19 @@ import argparse
 import asyncio
 import logging
 import os
+import secrets
+import socket
 import threading
 import webbrowser
 from contextlib import asynccontextmanager
+from typing import Optional
 
-from fastapi import FastAPI, File, HTTPException, UploadFile, WebSocket
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile, WebSocket
+from fastapi.responses import FileResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from .config import STATIC_DIR
+from .config import DATA_DIR, STATIC_DIR
 from .core import Core, SessionError
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s: %(message)s", datefmt="%H:%M:%S")
@@ -33,6 +36,56 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Interview Copilot", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+# -- phone access ---------------------------------------------------------------------
+# The app listens on your Wi-Fi so your phone can open it. Anything that isn't this computer
+# needs the key inside the QR code (then a cookie), so others on the same network can't see
+# your transcripts, answers or files.
+COOKIE = "copilot_key"
+_LOCAL = {"127.0.0.1", "::1"}
+_port = int(os.environ.get("PORT", "8765"))
+
+
+def _phone_key() -> str:
+    path = DATA_DIR / "phone_key"
+    try:
+        return path.read_text(encoding="utf-8").strip()
+    except OSError:
+        key = secrets.token_urlsafe(18)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(key, encoding="utf-8")
+        return key
+
+
+PHONE_KEY = _phone_key()
+
+
+def _allowed(host: Optional[str], key: Optional[str]) -> bool:
+    return host in _LOCAL or secrets.compare_digest(key or "", PHONE_KEY)
+
+
+def lan_ip() -> Optional[str]:
+    """This computer's address on the local network (no packet is sent)."""
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        try:
+            s.connect(("8.8.8.8", 80))  # picks the interface with the default route (your Wi-Fi)
+            ip = s.getsockname()[0]
+        except OSError:
+            return None
+    return None if ip.startswith("127.") else ip
+
+
+@app.middleware("http")
+async def phone_key_gate(request: Request, call_next):
+    host = request.client.host if request.client else None
+    if _allowed(host, request.cookies.get(COOKIE)):
+        return await call_next(request)
+    if _allowed(None, request.query_params.get("k")):  # first visit from the QR code
+        resp = RedirectResponse(str(request.url.remove_query_params("k")), status_code=303)
+        resp.set_cookie(COOKIE, PHONE_KEY, max_age=30 * 86400, httponly=True, samesite="lax")
+        return resp
+    return PlainTextResponse("Scan the QR code under Phone in Interview Copilot on your computer to open it here.",
+                             status_code=403)
 
 
 def _devices() -> dict:
@@ -65,6 +118,16 @@ async def info():
 @app.get("/api/devices")
 async def devices():
     return await asyncio.to_thread(_devices)
+
+
+@app.get("/api/phone")
+async def phone():
+    ip = lan_ip()
+    if not ip:
+        return {"url": None, "qr": None}
+    import segno
+    url = f"http://{ip}:{_port}/?k={PHONE_KEY}"
+    return {"url": url, "qr": segno.make(url, error="m").svg_data_uri(scale=8, dark="#000", light="#fff")}
 
 
 @app.post("/api/settings")
@@ -149,23 +212,31 @@ async def delete_doc(doc_id: str):
 
 @app.websocket("/ws")
 async def ws_endpoint(ws: WebSocket):
+    if not _allowed(ws.client.host if ws.client else None, ws.cookies.get(COOKIE)):
+        await ws.close(code=1008)
+        return
     await ws.accept()
     await core.hub.serve(ws, {"info": _info()})
 
 
 def main() -> None:
+    global _port
     import uvicorn
 
     parser = argparse.ArgumentParser(description="Interview Copilot")
-    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8765")))
+    parser.add_argument("--port", type=int, default=_port)
     parser.add_argument("--no-browser", action="store_true")
     args = parser.parse_args()
 
+    _port = args.port
     url = f"http://127.0.0.1:{args.port}"
     if not args.no_browser:
         threading.Timer(1.5, lambda: webbrowser.open(url)).start()
-    print(f"\n  Interview Copilot is running at {url}\n  Keep this window open. Press Ctrl+C to quit.\n")
-    uvicorn.run(app, host="127.0.0.1", port=args.port, log_level="warning")
+    phone = ("On your phone (same Wi-Fi): click Phone in the app and scan the QR code." if lan_ip()
+             else "Phone access needs this computer to be on Wi-Fi or a network.")
+    print(f"\n  Interview Copilot is running at {url}\n  {phone}\n  Keep this window open. Press Ctrl+C to quit.\n")
+    # All interfaces so your phone can connect; phone_key_gate keeps other devices out.
+    uvicorn.run(app, host="0.0.0.0", port=args.port, log_level="warning")
 
 
 if __name__ == "__main__":
