@@ -115,7 +115,7 @@ async def generate(core: Core) -> dict[tuple[str, int], str]:
 
 def spoken(text: str) -> str:
     """What the candidate actually says: they read the answer out loud, bullets included, word for word."""
-    lines = [re.sub(r"^\s*[-*•]\s*", "", line).replace("**", "").strip() for line in text.splitlines()]
+    lines = [re.sub(r"^\s*[-*•]\s*", "", line.replace("**", "")).strip() for line in text.splitlines()]
     return " ".join(line if line[-1:] in ".?!" else line + "." for line in lines if line)
 
 
