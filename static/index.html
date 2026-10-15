@@ -193,6 +193,11 @@ details summary { cursor: pointer; color: var(--ink-2); margin-bottom: 8px; }
   .rec-btn, .rec-btn.on { background: none; color: var(--ink); border: 1px solid var(--line); min-width: 0; padding: 8px 14px 8px 10px; font-size: 1em; }
   .rec-btn .dot, .rec-btn.on .dot { background: none; border: 2px solid var(--rec); }
   .rec-btn.on { color: var(--rec); border-color: var(--rec); }
+  /* one header row, so the answer keeps the screen */
+  .bar { flex-wrap: nowrap; gap: 8px; padding: 8px 12px; }
+  .status { min-width: 0; font-size: .85em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tools { gap: 4px; flex: none; }
+  .tools .ghost, .rec-btn { padding: 6px 9px; }
   #followBtn[aria-pressed="false"] { color: var(--ink-3); text-decoration: line-through; }
   .answers-col { border: 0; }
   .answers { padding: 0 16px 40vh; }  /* room for the last lines to scroll up to the reading line */
