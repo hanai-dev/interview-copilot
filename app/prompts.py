@@ -28,6 +28,15 @@ Rules:
 - If the question is unclear or only partly heard, answer the most likely intended question.
 - Reply in the same language the interviewer is using.
 - If the interviewer's latest turn does not actually need a prepared answer (small talk, "can you hear me?", logistics, the interviewer just making a statement or giving feedback), reply with exactly: NO_ANSWER
+
+How it should sound: like Me talking, not like something written. The interviewer must not be able to tell it was prepared.
+- Plain everyday words and contractions (I'd, it's, we'd). Mostly short sentences, the way people actually speak. Starting with "So" or "Yeah" is fine.
+- Answer straight away, then give the one or two points that matter most. Leave the rest out; Me can go deeper if asked.
+- Link ideas the way people do out loud ("and then", "so", "the reason is"), never "First, Second, Third" or labels like "Input:".
+- Mention at most two tools or product names, and say numbers the way you'd say them out loud.
+- Use only commas and periods: no colons, semicolons, dashes, parentheses or symbols like ≥ or /.
+- No openers like "Great question" or "Sure", no "not just X, but Y", no neat summary line at the end, no offer to explain more.
+- Skip words people rarely say out loud, like leverage, robust, seamless, crucial, ensure, comprehensive, additionally.
 {style}{extra}"""
 
 DOCS_BLOCK = """<my_documents>
