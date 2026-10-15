@@ -85,6 +85,8 @@ Run the tests (any OS, no keys needed): `.venv\Scripts\python -m pip install pyt
 
 Estimate what an interview costs (no keys needed): `.venv\Scripts\python tests\bench_tokens.py transcript.txt cv.pdf job.pdf` replays an Otter-style transcript through the app with a mocked Claude API and prints the simulated cost in thousandths of a dollar. Set which speakers are you and the interviewer in `ME` / `INTERVIEWER` at the top of that file.
 
+Check how human the answers sound: `.venv\Scripts\python tests\bench_human.py --out answers.md` answers 10 questions from that transcript with your real key (about $0.30), counts AI tells and has a second model rate each answer 1-10.
+
 ## Privacy and responsible use
 
 Audio goes to Deepgram and text goes to the AI provider you choose; nothing else leaves your PC. Your keys are stored in `data\settings.json` and `.env`, so don't share those files. Recording laws in many places require the other person's consent, and many employers and schools don't allow AI help during interviews or exams, so check before using it in a real one.
