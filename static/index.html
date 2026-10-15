@@ -187,8 +187,12 @@ details summary { cursor: pointer; color: var(--ink-2); margin-bottom: 8px; }
     color-scheme: dark;
   }
   main { grid-template-columns: 1fr; grid-template-rows: 1fr; }
-  main > .col:first-child, .meters, .timer, #recBtn, #filesBtn, #settingsBtn, #phoneBtn, #askInput, .ask button[type="submit"] { display: none; }
+  main > .col:first-child, .meters, .timer, #filesBtn, #settingsBtn, #phoneBtn, #askInput, .ask button[type="submit"] { display: none; }
   #followBtn { display: inline-flex; }
+  /* Record stays usable from the phone, as an outline with a ring instead of a filled dot: nothing glows */
+  .rec-btn, .rec-btn.on { background: none; color: var(--ink); border: 1px solid var(--line); min-width: 0; padding: 8px 14px 8px 10px; font-size: 1em; }
+  .rec-btn .dot, .rec-btn.on .dot { background: none; border: 2px solid var(--rec); }
+  .rec-btn.on { color: var(--rec); border-color: var(--rec); }
   #followBtn[aria-pressed="false"] { color: var(--ink-3); text-decoration: line-through; }
   .answers-col { border: 0; }
   .answers { padding: 0 16px 40vh; }  /* room for the last lines to scroll up to the reading line */
