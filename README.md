@@ -75,13 +75,15 @@ Then:
 | `app/transcriber.py` | Streams the audio to Deepgram (`multichannel=true`, interim results, utterance-end events) with auto-reconnect |
 | `app/turns.py` | Builds speaker turns, closes a turn after ~1 s of silence or when the other person starts talking, filters mic echo |
 | `app/prompts.py` | Quick rules for "is this a question?" plus the prompts for the question check and answer agent |
-| `app/llm.py` | Claude / OpenAI streaming. Your files are sent as a cached block so repeat answers start faster |
+| `app/llm.py` | Claude / OpenAI streaming. Your files and the finished part of the transcript are prompt-cached, so repeat answers start faster and cost less |
 | `app/core.py` | Ties it together: session, answer agent, events to the browser |
 | `app/server.py` + `static/index.html` | Local web app |
 
 Latency you can expect: words appear on screen within about half a second; an answer starts streaming roughly 1.5–3 seconds after the interviewer finishes. The time to first words is shown on every answer.
 
 Run the tests (any OS, no keys needed): `.venv\Scripts\python -m pip install pytest httpx` then `.venv\Scripts\python -m pytest -q`.
+
+Estimate what an interview costs (no keys needed): `.venv\Scripts\python tests\bench_tokens.py transcript.txt cv.pdf job.pdf` replays an Otter-style transcript through the app with a mocked Claude API and prints the simulated cost in thousandths of a dollar. Set which speakers are you and the interviewer in `ME` / `INTERVIEWER` at the top of that file.
 
 ## Privacy and responsible use
 
