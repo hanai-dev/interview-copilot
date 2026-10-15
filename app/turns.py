@@ -112,7 +112,7 @@ class Aggregator:
         total = sum(sizes)
         if total > WINDOW_CHARS:
             drop = 0
-            while total > WINDOW_CHARS // 2 and drop < len(turns) - 1:
+            while total > WINDOW_CHARS // 2 and drop < len(turns) - 1 and turns[drop].closed:
                 total -= sizes[drop]
                 drop += 1
             turns = turns[drop:]
