@@ -1,0 +1,712 @@
+{
+  "bgm": null,
+  "bgm_pending": false,
+  "voices": [
+    {
+      "frame": 1,
+      "path": "assets/voice/01.wav",
+      "duration_s": 3.731,
+      "words": [
+        {
+          "text": "They",
+          "start": 0,
+          "end": 0.251
+        },
+        {
+          "text": "ask",
+          "start": 0.251,
+          "end": 0.46
+        },
+        {
+          "text": "a",
+          "start": 0.46,
+          "end": 0.586
+        },
+        {
+          "text": "tough",
+          "start": 0.586,
+          "end": 0.879
+        },
+        {
+          "text": "question.",
+          "start": 0.879,
+          "end": 1.576
+        },
+        {
+          "text": "Your",
+          "start": 1.576,
+          "end": 1.827
+        },
+        {
+          "text": "mind",
+          "start": 1.827,
+          "end": 2.078
+        },
+        {
+          "text": "goes",
+          "start": 2.078,
+          "end": 2.329
+        },
+        {
+          "text": "blank.",
+          "start": 2.329,
+          "end": 2.622
+        }
+      ]
+    },
+    {
+      "frame": 2,
+      "path": "assets/voice/02.wav",
+      "duration_s": 5.784,
+      "words": [
+        {
+          "text": "Meet",
+          "start": 0,
+          "end": 0.269
+        },
+        {
+          "text": "Interview",
+          "start": 0.269,
+          "end": 0.764
+        },
+        {
+          "text": "Copilot.",
+          "start": 0.764,
+          "end": 1.168
+        },
+        {
+          "text": "About",
+          "start": 1.168,
+          "end": 1.985
+        },
+        {
+          "text": "two",
+          "start": 1.985,
+          "end": 2.21
+        },
+        {
+          "text": "seconds",
+          "start": 2.21,
+          "end": 2.614
+        },
+        {
+          "text": "after",
+          "start": 2.614,
+          "end": 2.928
+        },
+        {
+          "text": "they",
+          "start": 2.928,
+          "end": 3.198
+        },
+        {
+          "text": "finish,",
+          "start": 3.198,
+          "end": 3.557
+        },
+        {
+          "text": "your",
+          "start": 3.557,
+          "end": 4.025
+        },
+        {
+          "text": "answer",
+          "start": 4.025,
+          "end": 4.384
+        },
+        {
+          "text": "is",
+          "start": 4.384,
+          "end": 4.564
+        },
+        {
+          "text": "on",
+          "start": 4.564,
+          "end": 4.743
+        },
+        {
+          "text": "screen.",
+          "start": 4.743,
+          "end": 5.103
+        }
+      ]
+    },
+    {
+      "frame": 3,
+      "path": "assets/voice/03.wav",
+      "duration_s": 5.059,
+      "words": [
+        {
+          "text": "First,",
+          "start": 0,
+          "end": 0.339
+        },
+        {
+          "text": "add",
+          "start": 0.339,
+          "end": 0.58
+        },
+        {
+          "text": "your",
+          "start": 0.58,
+          "end": 0.871
+        },
+        {
+          "text": "CV",
+          "start": 0.871,
+          "end": 1.064
+        },
+        {
+          "text": "and",
+          "start": 1.064,
+          "end": 1.306
+        },
+        {
+          "text": "the",
+          "start": 1.306,
+          "end": 1.548
+        },
+        {
+          "text": "job",
+          "start": 1.548,
+          "end": 1.789
+        },
+        {
+          "text": "post.",
+          "start": 1.789,
+          "end": 2.08
+        },
+        {
+          "text": "Every",
+          "start": 2.08,
+          "end": 2.418
+        },
+        {
+          "text": "answer",
+          "start": 2.418,
+          "end": 3.246
+        },
+        {
+          "text": "is",
+          "start": 3.246,
+          "end": 3.44
+        },
+        {
+          "text": "built",
+          "start": 3.44,
+          "end": 3.778
+        },
+        {
+          "text": "from",
+          "start": 3.778,
+          "end": 4.068
+        },
+        {
+          "text": "them.",
+          "start": 4.068,
+          "end": 4.359
+        }
+      ]
+    },
+    {
+      "frame": 4,
+      "path": "assets/voice/04.wav",
+      "duration_s": 7.427,
+      "words": [
+        {
+          "text": "Press",
+          "start": 0,
+          "end": 0.306
+        },
+        {
+          "text": "Record.",
+          "start": 0.306,
+          "end": 0.656
+        },
+        {
+          "text": "Your",
+          "start": 0.656,
+          "end": 0.918
+        },
+        {
+          "text": "mic",
+          "start": 0.918,
+          "end": 1.137
+        },
+        {
+          "text": "is",
+          "start": 1.137,
+          "end": 1.312
+        },
+        {
+          "text": "Me.",
+          "start": 1.312,
+          "end": 1.487
+        },
+        {
+          "text": "Your",
+          "start": 1.487,
+          "end": 2.133
+        },
+        {
+          "text": "computer's",
+          "start": 2.133,
+          "end": 2.657
+        },
+        {
+          "text": "sound",
+          "start": 2.657,
+          "end": 2.964
+        },
+        {
+          "text": "is",
+          "start": 2.964,
+          "end": 3.139
+        },
+        {
+          "text": "the",
+          "start": 3.139,
+          "end": 3.357
+        },
+        {
+          "text": "Interviewer.",
+          "start": 3.357,
+          "end": 4.373
+        },
+        {
+          "text": "Two",
+          "start": 4.373,
+          "end": 4.592
+        },
+        {
+          "text": "channels,",
+          "start": 4.592,
+          "end": 5.029
+        },
+        {
+          "text": "so",
+          "start": 5.029,
+          "end": 5.204
+        },
+        {
+          "text": "it",
+          "start": 5.204,
+          "end": 5.379
+        },
+        {
+          "text": "always",
+          "start": 5.379,
+          "end": 5.729
+        },
+        {
+          "text": "knows",
+          "start": 5.729,
+          "end": 6.035
+        },
+        {
+          "text": "who's",
+          "start": 6.035,
+          "end": 6.341
+        },
+        {
+          "text": "talking.",
+          "start": 6.341,
+          "end": 6.735
+        }
+      ]
+    },
+    {
+      "frame": 5,
+      "path": "assets/voice/05.wav",
+      "duration_s": 3.133,
+      "words": [
+        {
+          "text": "Their",
+          "start": 0,
+          "end": 0.299
+        },
+        {
+          "text": "words",
+          "start": 0.299,
+          "end": 0.598
+        },
+        {
+          "text": "show",
+          "start": 0.598,
+          "end": 0.855
+        },
+        {
+          "text": "up",
+          "start": 0.855,
+          "end": 1.026
+        },
+        {
+          "text": "live,",
+          "start": 1.026,
+          "end": 1.282
+        },
+        {
+          "text": "as",
+          "start": 1.282,
+          "end": 1.453
+        },
+        {
+          "text": "they",
+          "start": 1.453,
+          "end": 1.71
+        },
+        {
+          "text": "speak.",
+          "start": 1.71,
+          "end": 1.71
+        }
+      ]
+    },
+    {
+      "frame": 6,
+      "path": "assets/voice/06.wav",
+      "duration_s": 4.007,
+      "words": [
+        {
+          "text": "Small",
+          "start": 0,
+          "end": 0.325
+        },
+        {
+          "text": "talk",
+          "start": 0.325,
+          "end": 0.604
+        },
+        {
+          "text": "gets",
+          "start": 0.604,
+          "end": 0.882
+        },
+        {
+          "text": "skipped.",
+          "start": 0.882,
+          "end": 1.3
+        },
+        {
+          "text": "A",
+          "start": 1.3,
+          "end": 1.775
+        },
+        {
+          "text": "real",
+          "start": 1.775,
+          "end": 2.054
+        },
+        {
+          "text": "question",
+          "start": 2.054,
+          "end": 2.518
+        },
+        {
+          "text": "gets",
+          "start": 2.518,
+          "end": 2.797
+        },
+        {
+          "text": "flagged.",
+          "start": 2.797,
+          "end": 2.797
+        }
+      ]
+    },
+    {
+      "frame": 7,
+      "path": "assets/voice/07.wav",
+      "duration_s": 6.56,
+      "words": [
+        {
+          "text": "And",
+          "start": 0,
+          "end": 0.213
+        },
+        {
+          "text": "your",
+          "start": 0.213,
+          "end": 0.469
+        },
+        {
+          "text": "answer",
+          "start": 0.469,
+          "end": 0.81
+        },
+        {
+          "text": "streams",
+          "start": 0.81,
+          "end": 1.194
+        },
+        {
+          "text": "in.",
+          "start": 1.194,
+          "end": 1.878
+        },
+        {
+          "text": "The",
+          "start": 1.878,
+          "end": 2.091
+        },
+        {
+          "text": "key",
+          "start": 2.091,
+          "end": 2.305
+        },
+        {
+          "text": "line",
+          "start": 2.305,
+          "end": 2.561
+        },
+        {
+          "text": "highlighted,",
+          "start": 2.561,
+          "end": 3.419
+        },
+        {
+          "text": "talking",
+          "start": 3.419,
+          "end": 3.803
+        },
+        {
+          "text": "points",
+          "start": 3.803,
+          "end": 4.144
+        },
+        {
+          "text": "from",
+          "start": 4.144,
+          "end": 4.4
+        },
+        {
+          "text": "your",
+          "start": 4.4,
+          "end": 4.656
+        },
+        {
+          "text": "own",
+          "start": 4.656,
+          "end": 4.869
+        },
+        {
+          "text": "CV",
+          "start": 4.869,
+          "end": 5.04
+        },
+        {
+          "text": "underneath.",
+          "start": 5.04,
+          "end": 5.04
+        }
+      ]
+    },
+    {
+      "frame": 8,
+      "path": "assets/voice/08.wav",
+      "duration_s": 6.027,
+      "words": [
+        {
+          "text": "On",
+          "start": 0,
+          "end": 0.168
+        },
+        {
+          "text": "your",
+          "start": 0.168,
+          "end": 0.42
+        },
+        {
+          "text": "phone,",
+          "start": 0.42,
+          "end": 0.714
+        },
+        {
+          "text": "it's",
+          "start": 0.714,
+          "end": 0.966
+        },
+        {
+          "text": "a",
+          "start": 0.966,
+          "end": 1.092
+        },
+        {
+          "text": "dim",
+          "start": 1.092,
+          "end": 1.302
+        },
+        {
+          "text": "teleprompter.",
+          "start": 1.302,
+          "end": 1.89
+        },
+        {
+          "text": "It",
+          "start": 1.89,
+          "end": 2.058
+        },
+        {
+          "text": "follows",
+          "start": 2.058,
+          "end": 2.891
+        },
+        {
+          "text": "your",
+          "start": 2.891,
+          "end": 3.143
+        },
+        {
+          "text": "voice",
+          "start": 3.143,
+          "end": 3.437
+        },
+        {
+          "text": "and",
+          "start": 3.437,
+          "end": 3.647
+        },
+        {
+          "text": "keeps",
+          "start": 3.647,
+          "end": 3.941
+        },
+        {
+          "text": "your",
+          "start": 3.941,
+          "end": 4.193
+        },
+        {
+          "text": "place",
+          "start": 4.193,
+          "end": 4.487
+        },
+        {
+          "text": "as",
+          "start": 4.487,
+          "end": 4.655
+        },
+        {
+          "text": "you",
+          "start": 4.655,
+          "end": 4.865
+        },
+        {
+          "text": "read.",
+          "start": 4.865,
+          "end": 4.865
+        }
+      ]
+    },
+    {
+      "frame": 9,
+      "path": "assets/voice/09.wav",
+      "duration_s": 3.872,
+      "words": [
+        {
+          "text": "Their",
+          "start": 0,
+          "end": 0.297
+        },
+        {
+          "text": "last",
+          "start": 0.297,
+          "end": 0.552
+        },
+        {
+          "text": "word",
+          "start": 0.552,
+          "end": 0.806
+        },
+        {
+          "text": "to",
+          "start": 0.806,
+          "end": 0.976
+        },
+        {
+          "text": "your",
+          "start": 0.976,
+          "end": 1.23
+        },
+        {
+          "text": "first",
+          "start": 1.23,
+          "end": 1.527
+        },
+        {
+          "text": "line:",
+          "start": 1.527,
+          "end": 2.113
+        },
+        {
+          "text": "about",
+          "start": 2.113,
+          "end": 2.41
+        },
+        {
+          "text": "two",
+          "start": 2.41,
+          "end": 2.622
+        },
+        {
+          "text": "seconds.",
+          "start": 2.622,
+          "end": 3.004
+        }
+      ]
+    },
+    {
+      "frame": 10,
+      "path": "assets/voice/10.wav",
+      "duration_s": 5.248,
+      "words": [
+        {
+          "text": "Interview",
+          "start": 0,
+          "end": 0.503
+        },
+        {
+          "text": "Copilot.",
+          "start": 0.503,
+          "end": 0.915
+        },
+        {
+          "text": "Try",
+          "start": 0.915,
+          "end": 1.575
+        },
+        {
+          "text": "the",
+          "start": 1.575,
+          "end": 1.804
+        },
+        {
+          "text": "demo",
+          "start": 1.804,
+          "end": 2.078
+        },
+        {
+          "text": "interview,",
+          "start": 2.078,
+          "end": 2.581
+        },
+        {
+          "text": "then",
+          "start": 2.581,
+          "end": 2.856
+        },
+        {
+          "text": "press",
+          "start": 2.856,
+          "end": 3.176
+        },
+        {
+          "text": "Record.",
+          "start": 3.176,
+          "end": 3.542
+        }
+      ]
+    }
+  ],
+  "sfx": []
+}

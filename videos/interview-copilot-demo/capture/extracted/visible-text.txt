@@ -1,0 +1,74 @@
+[h1] Interview Copilot
+[span] Record
+[span] 0:00
+[span] Interviewer
+[div] Ready
+[button] Files
+[button] Settings
+[button] Phone
+[h2] Live transcript
+[b] Press Record when your call starts.
+[p] Your microphone is labeled
+[p] and your computer's sound is labeled
+[b] Interviewer
+[p] . Wear headphones so your mic doesn't pick up the other person.
+[h2] Answers
+[small] Claude
+[p] Answers appear here as soon as the interviewer asks a question, built from the files you add.
+[button] Try a demo interview
+[button] Answer now
+[label] Ask the AI
+[button] Ask
+[h2] Open on your phone
+[button] Close
+[p] Scan this with your phone's camera. Your phone needs to be on the same Wi-Fi as this computer.
+[p] If your phone warns that the connection isn't secure, tap Continue. If it doesn't load at all, this Wi-Fi may stop devices from reaching each other (common on guest networks).
+[h2] Interview files
+[button] Close
+[p] Add the material the interview is based on: your CV, the job description, notes, course material. Every answer uses these files.
+[b] Drop files here
+[label] or click to choose
+[small] PDF, Word (.docx), text or Markdown
+[span] No files yet. Answers will be generic until you add your CV or the job description.
+[summary] Paste text instead
+[span] Name
+[span] Text
+[button] Add text
+[h2] Settings
+[button] Close
+[legend] API keys
+[span] Deepgram (live transcription)
+[small] Get one at console.deepgram.com
+[span] Anthropic (Claude)
+[span] OpenAI (ChatGPT)
+[small] Keys stay on this computer. Leave a field blank to keep the saved key.
+[legend] AI for answers
+[label] Claude
+[label] ChatGPT
+[span] Answer style
+[option] Talking points (headline + bullets)
+[option] Full answer I can read out
+[option] Short (2–3 sentences)
+[label] Answer automatically when a question is detected
+[span] Extra instructions
+[summary] Models
+[span] Claude answer model
+[span] Claude question-check model
+[span] Claude effort
+[small] low = fastest first words. Leave blank for the model default.
+[span] OpenAI answer model
+[span] OpenAI question-check model
+[span] OpenAI reasoning effort
+[small] low = fastest. Leave blank if your model doesn't support it.
+[legend] Audio
+[span] Your microphone (Me)
+[span] Call audio output (Interviewer)
+[small] Pick the headphones or speakers your call plays through.
+[span] Language
+[small] en, en-US, es, fr, de, hi, ja… or “multi” for mixed languages
+[span] Key terms
+[small] Names and jargon to help transcription, comma-separated
+[span] Transcription model
+[label] Also save the audio recording
+[button] Cancel
+[button] Save settings

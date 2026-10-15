@@ -1,0 +1,144 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face { font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 400; src: url("assets/fonts/captured-9Bt23C1KxNDXMspQ1lPyU89-1h6ONRlW45G04pIoWQeCbA.woff2") format('woff2'); }
+    @font-face { font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 700; src: url("assets/fonts/captured-9Bt73C1KxNDXMspQ1lPyU89-1h6ONRlW45G8Wbc9dCWPRl-uFQ.woff2") format('woff2'); }
+    #root { position: absolute; inset: 0; overflow: hidden; font-family: 'Atkinson Hyperlegible', sans-serif; color: #1B2430; }
+    [data-composition-id="07-answer-streams"] .ground { position: absolute; inset: 0; background: #E9EDF1; }
+    [data-composition-id="07-answer-streams"] .stage { position: absolute; inset: 0; }
+    [data-composition-id="07-answer-streams"] .camera { position: absolute; inset: 0; transform-origin: 50% 50%; will-change: transform; }
+    [data-composition-id="07-answer-streams"] .card { position: absolute; left: 136px; top: 110px; width: 1649px; height: 646px; overflow: hidden; border-radius: 14px; border: 1.5px solid rgba(47, 93, 138, 0.2); background: #FFFFFF; }
+    [data-composition-id="07-answer-streams"] .card img { position: absolute; width: 2720px; left: -1054px; top: -204px; }
+    [data-composition-id="07-answer-streams"] .sheen { position: absolute; left: 20.5px; top: 75.5px; width: 1522px; height: 97px; overflow: hidden; }
+    [data-composition-id="07-answer-streams"] .sheen-band { position: absolute; top: 0; left: 0; width: 320px; height: 100%; background: linear-gradient(105deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.9) 50%, rgba(255, 255, 255, 0) 100%); mix-blend-mode: soft-light; }
+    [data-composition-id="07-answer-streams"] .cover { position: absolute; background: #FFFFFF; }
+    [data-composition-id="07-answer-streams"] .caret { position: absolute; left: 0; width: 5px; border-radius: 2px; opacity: 0; }
+    [data-composition-id="07-answer-streams"] .from { position: absolute; left: 136px; top: 790px; display: flex; align-items: center; gap: 14px; padding: 12px 28px; border-radius: 100px; background: rgba(47, 93, 138, 0.08); color: #2F5D8A; font-size: 30px; }
+    [data-composition-id="07-answer-streams"] .from b { font-weight: 700; }
+  </style>
+  <div data-hf-id="hf-xnlo" id="root" data-composition-id="07-answer-streams" data-width="1920" data-height="1080" data-duration="7.06">
+    <div data-hf-id="hf-evs8" id="f07-answer-streams-ground" class="ground clip" data-start="0" data-duration="7.06" data-track-index="0"></div>
+    <div data-hf-id="hf-cs63" id="f07-answer-streams-stage" class="stage clip" data-start="0" data-duration="7.06" data-track-index="1">
+      <div data-hf-id="hf-2oo8" class="camera" data-layout-allow-overflow>
+        <div data-hf-id="hf-vn2y" class="card">
+          <img data-hf-id="hf-wprp" src="assets/answer-ready.jpg" alt="Answer to the deadline question" />
+          <div data-hf-id="hf-x5sz" class="sheen"><div data-hf-id="hf-qxah" class="sheen-band"></div></div>
+        </div>
+        <div data-hf-id="hf-l3y0" class="from"><span data-hf-id="hf-6a6l">built from</span><b data-hf-id="hf-g2rm" class="type">Sam Rivera CV</b><span data-hf-id="hf-wy6a" class="type">+</span><b data-hf-id="hf-r289" class="type">Northwind Labs job post</b></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const ROOT = document.querySelector('[data-composition-id="07-answer-streams"]');
+      const q = (s) => ROOT.querySelector(s);
+      const tl = gsap.timeline({ paused: true });
+      const DUR = 6.56;
+
+      // Answer lines as ink boxes in frame px (measured off the approved still): [y0, y1, x0, x1].
+      // Card padding box starts at (137.5, 111.5); covers are white like the card, so they hide the
+      // real screenshot until they retreat left -> right, line by line, like streaming text.
+      const OX = 137.5, OY = 111.5;
+      const KEY = [[187, 226, 158, 1680], [245, 284, 158, 1031]];
+      const BULLETS = [
+        [[326, 359, 172, 1707], [383, 417, 208, 830]],
+        [[450, 484, 172, 1711], [508, 541, 207, 724]],
+        [[574, 608, 172, 1665], [632, 664, 210, 515]],
+        [[698, 730, 172, 1345]],
+      ];
+      const SEG = {
+        key: { caretH: 34, color: "#2A2300" },   // on the yellow key line: mark-ink, taller caret
+        body: { caretH: 30, color: "#1B2430" },  // talking points: body ink
+      };
+      const LINE_GAP = 0.03, BULLET_GAP = 0.07, KEY_GAP = 0.06, BASE = 0.03;
+
+      // Covers abut at the midpoint between neighbouring lines so no JPEG ringing leaks through a gap.
+      const ROWS = [
+        ...KEY.map((box, i) => ({ box, seg: "key", gap: i ? KEY_GAP : 0 })),
+        ...BULLETS.flatMap((lines, bi) => lines.map((box, li) => ({ box, seg: "body", gap: li ? LINE_GAP : bi ? BULLET_GAP : 0 }))),
+      ];
+      const card = q(".card");
+      const toLine = ({ box: [y0, y1, x0, x1], seg, gap }, i) => {
+        const s = SEG[seg];
+        const yTop = i ? (ROWS[i - 1].box[1] + y0) / 2 : y0 - 14;
+        const yBot = i < ROWS.length - 1 ? (y1 + ROWS[i + 1].box[0]) / 2 : y1 + 12;
+        const left = x0 - OX - 6, top = yTop - OY, height = yBot - yTop;
+        const cover = document.createElement("div");
+        cover.className = "cover";
+        cover.style.cssText = `left:${left}px;top:${top}px;width:${1700 - left}px;height:${height}px`;
+        const caret = document.createElement("div");
+        caret.className = "caret";
+        caret.style.cssText = `top:${(y0 + y1 - s.caretH) / 2 - yTop}px;height:${s.caretH}px;background:${s.color}`;
+        cover.appendChild(caret);
+        card.appendChild(cover);
+        return { cover, caret, gap, travel: x1 - x0 + 12 };
+      };
+
+      // dynamic-content-sequencing: each line's duration = BASE + travel / rate (longer line, more time);
+      // rate is solved once so the run lands exactly at `end`. Pre-computed, never in onUpdate.
+      const sequence = (lines, start, end) => {
+        const overhead = lines.reduce((s, l) => s + l.gap + BASE, 0);
+        const rate = lines.reduce((s, l) => s + l.travel, 0) / (end - start - overhead);
+        let t = start;
+        return lines.map((l) => {
+          const s0 = t + l.gap;
+          t = s0 + BASE + l.travel / rate;
+          return { ...l, start: s0, end: t };
+        });
+      };
+
+      const built = ROWS.map(toLine);
+      const LINES = [...sequence(built.slice(0, KEY.length), 0.35, 1.75), ...sequence(built.slice(KEY.length), 3.2, 5.3)];
+
+      // Scene 1 + 3: the stream. Covers retreat at constant speed; the caret rides each cover's left edge.
+      LINES.forEach((l) => {
+        tl.fromTo(l.cover, { x: 0 }, { x: l.travel, duration: l.end - l.start, ease: "none" }, l.start);
+      });
+
+      // Scene 2: one brightness pass across the highlighted key line (soft-light sheen, below the covers).
+      tl.fromTo(q(".sheen-band"), { x: -320 }, { x: 1522, duration: 0.85, ease: "power1.inOut" }, 2.2);
+
+      // Scene 3: on "your own CV" the source pill slides up, then the file names type in.
+      const chars = [];
+      ROOT.querySelectorAll(".from .type").forEach((el) => {
+        const text = el.textContent;
+        el.textContent = "";
+        for (const ch of text) {
+          const span = document.createElement("span");
+          span.textContent = ch;
+          el.appendChild(span);
+          chars.push(span);
+        }
+      });
+      tl.fromTo(q(".from"), { y: 36, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 4.1);
+      tl.fromTo(chars, { opacity: 0 }, { opacity: 1, duration: 0.01, ease: "none", stagger: 0.024 }, 4.3);
+
+      // One clock, one writer: camera transform (short early settle 1.035 -> 1 + whole-cycle micro-drift that
+      // returns to 0 at the last frame) and the context-sensitive caret (solid while streaming, timeline-driven
+      // blink when idle, gone once the answer is complete). Pure function of t, so any seek, either direction,
+      // reproduces the frame regardless of child render order.
+      const camera = q(".camera");
+      const settle = gsap.parseEase("power3.out");
+      const S0 = 1.035, SETTLE = 1.3;
+      const BLINK = 0.6, GRACE = 0.2, CARET_OFF = LINES[LINES.length - 1].end + GRACE;
+      const render = (t) => {
+        const s = S0 + (1 - S0) * settle(Math.min(t / SETTLE, 1));
+        const dx = Math.sin((t / DUR) * Math.PI * 4) * 2.5;
+        const dy = Math.sin((t / DUR) * Math.PI * 6) * 1.2;
+        camera.style.transform = `scale(${s.toFixed(4)}) translate(${dx.toFixed(2)}px, ${dy.toFixed(2)}px)`;
+        let active = 0;
+        LINES.forEach((l, i) => { if (t >= l.start) active = i; });
+        const l = LINES[active];
+        const typing = t >= l.start && t < l.end + GRACE;
+        const on = t < CARET_OFF && (typing || t % BLINK < BLINK / 2);
+        LINES.forEach((x, i) => { x.caret.style.opacity = on && i === active ? "1" : "0"; });
+      };
+      const clock = { t: 0 };
+      tl.to(clock, { t: DUR, duration: DUR, ease: "none", onUpdate: () => render(clock.t) }, 0);
+      render(0);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["07-answer-streams"] = tl;
+    })();
+  </script>
+</template>

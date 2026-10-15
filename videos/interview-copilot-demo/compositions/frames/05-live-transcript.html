@@ -1,0 +1,84 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face { font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 400; src: url("assets/fonts/captured-9Bt23C1KxNDXMspQ1lPyU89-1h6ONRlW45G04pIoWQeCbA.woff2") format('woff2'); }
+    @font-face { font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 700; src: url("assets/fonts/captured-9Bt73C1KxNDXMspQ1lPyU89-1h6ONRlW45G8Wbc9dCWPRl-uFQ.woff2") format('woff2'); }
+    #root { position: absolute; inset: 0; overflow: hidden; font-family: 'Atkinson Hyperlegible', sans-serif; color: #1B2430; }
+    [data-composition-id="05-live-transcript"] .ground { position: absolute; inset: 0; background: #E9EDF1; }
+    [data-composition-id="05-live-transcript"] .stage { position: absolute; inset: 0; }
+    [data-composition-id="05-live-transcript"] .cam { position: absolute; inset: 0; transform-origin: 894px 781px; will-change: transform; }
+    [data-composition-id="05-live-transcript"] .win { position: absolute; left: 444px; top: 40px; width: 1032px; height: 840px; overflow: hidden; border-radius: 14px; border: 1.5px solid rgba(47, 93, 138, 0.2); background: #FFFFFF; }
+    [data-composition-id="05-live-transcript"] .win img { position: absolute; left: 0; top: 0; width: 2560px; }
+    [data-composition-id="05-live-transcript"] .cover { position: absolute; left: 48px; top: 739px; width: 472px; height: 37px; background: #E3ECF5; transform-origin: 100% 50%; }
+    [data-composition-id="05-live-transcript"] .lvl { position: absolute; left: 664px; top: 46px; width: 102px; height: 13px; box-sizing: border-box; border: 1px solid #D5DADE; border-radius: 100px; background: #F4F6F8; overflow: hidden; }
+    [data-composition-id="05-live-transcript"] .lvl b { position: absolute; left: 0; top: 0; bottom: 0; width: 68%; border-radius: 100px; background: #2F5D8A; transform-origin: 0 50%; }
+    [data-composition-id="05-live-transcript"] .ring { position: absolute; left: 466px; top: 726px; width: 856px; height: 110px; border: 4px solid #2F5D8A; border-radius: 14px; }
+    [data-composition-id="05-live-transcript"] .live { position: absolute; left: 1510px; top: 755px; display: flex; align-items: center; gap: 12px; padding: 12px 26px; border-radius: 100px; background: #FFFFFF; border: 1.5px solid rgba(47, 93, 138, 0.2); font-size: 28px; font-weight: 700; letter-spacing: 0.08em; color: #2F5D8A; }
+    [data-composition-id="05-live-transcript"] .live i { display: block; width: 16px; height: 16px; border-radius: 50%; background: #C8372D; }
+    [data-composition-id="05-live-transcript"] .fade { position: absolute; right: 0; top: 0; bottom: 0; width: 110px; background: linear-gradient(90deg, rgba(255, 255, 255, 0), #FFFFFF 80%); }
+  </style>
+  <div data-hf-id="hf-zr2b" id="root" data-composition-id="05-live-transcript" data-width="1920" data-height="1080" data-duration="3.633">
+    <div data-hf-id="hf-1jx5" id="f05-live-transcript-ground" class="ground clip" data-start="0" data-duration="3.633" data-track-index="0"></div>
+    <div data-hf-id="hf-5urm" id="f05-live-transcript-stage" class="stage clip" data-start="0" data-duration="3.633" data-track-index="1">
+      <div data-hf-id="hf-12x1" class="cam">
+        <div data-hf-id="hf-v0ka" class="win">
+          <img data-hf-id="hf-e6r3" src="assets/interviewer-speaking.jpg" alt="Live transcript while the interviewer speaks" />
+          <div data-hf-id="hf-ze0h" class="cover"></div>
+          <div data-hf-id="hf-9myq" class="lvl"><b data-hf-id="hf-xujp"></b></div>
+          <div data-hf-id="hf-8ps2" class="fade"></div>
+        </div>
+        <div data-hf-id="hf-0qcu" class="ring"></div>
+        <div data-hf-id="hf-j8vw" class="live"><i data-hf-id="hf-wt6k"></i>LIVE</div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+      const root = document.querySelector('[data-composition-id="05-live-transcript"]');
+      const $ = (s) => root.querySelector(s);
+      const tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0-0.6): short push-in toward the live row, long-tail settle onto the sketch framing.
+      // ponytail: coordinate-target-zoom as one wrapper scaled about the row's centre (894,781) so the row holds
+      // still while the window closes in; nested scale/translate wrappers only needed if the row must travel to canvas centre.
+      tl.fromTo($(".cam"), { scale: 0.955 }, { scale: 1, duration: 1.0, ease: "expo.out" }, 0);
+
+      // Scene 2 (0.3-2.3): grey interim words appear left to right under a row-tint cover that retreats word by word.
+      // Edges are measured word gaps in the 3200px source; cover spans source x 60-650 (48-520px in the window).
+      const COVER_L = 60, COVER_R = 650;
+      const WORDS = [["Nice.", 143], ["Can", 206], ["you", 264], ["describe", 395], ["a", 420], ["time", 492], ["you", 550], ["had", 611], ["to", 650]];
+      const BASE = 0.12, SEC_PER_CHAR = 0.03, WIPE = 0.09;
+      const cover = $(".cover");
+      let at = 0.3, prev = 1;
+      WORDS.forEach(([word, edge]) => {
+        const s = (COVER_R - edge) / (COVER_R - COVER_L);
+        tl.fromTo(cover, { scaleX: prev }, { scaleX: s, duration: WIPE, ease: "power1.out", immediateRender: false }, at);
+        prev = s;
+        at += BASE + word.length * SEC_PER_CHAR;
+      });
+
+      // Outline fades in around the row with the first word; LIVE pill pops in (smooth, no overshoot).
+      tl.fromTo($(".ring"), { opacity: 0, scale: 1.03 }, { opacity: 1, scale: 1, duration: 0.45, ease: "power3.out" }, 0.3);
+      tl.fromTo($(".live"), { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.55, ease: "power3.out" }, 0.36);
+
+      // Interviewer level bar moves while they speak, back to the screenshot's level (1 = 68% fill) by 2.2s.
+      const LEVELS = [0.62, 1.28, 0.84, 1.4, 0.56, 1.18, 0.74, 1.34, 0.5, 1.22, 0.9, 1.44, 0.66, 1.12, 0.8, 1];
+      const fill = $(".lvl b");
+      let lv = 1;
+      LEVELS.forEach((v, i) => {
+        tl.fromTo(fill, { scaleX: lv }, { scaleX: v, duration: 0.12, ease: "sine.inOut", immediateRender: false }, 0.28 + i * 0.12);
+        lv = v;
+      });
+
+      // Scene 3 (2.3-3.1): hold; the red LIVE dot dims and brightens twice (finite).
+      const dot = $(".live i");
+      [0.3, 1, 0.3, 1].forEach((o, i) => {
+        tl.to(dot, { opacity: o, duration: 0.18, ease: "sine.inOut" }, 2.35 + i * 0.18);
+      });
+
+      tl.set({}, {}, 3.133);
+      window.__timelines["05-live-transcript"] = tl;
+    })();
+  </script>
+</template>

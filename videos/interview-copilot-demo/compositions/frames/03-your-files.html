@@ -1,0 +1,60 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face { font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 400; src: url("assets/fonts/captured-9Bt23C1KxNDXMspQ1lPyU89-1h6ONRlW45G04pIoWQeCbA.woff2") format('woff2'); }
+    @font-face { font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 700; src: url("assets/fonts/captured-9Bt73C1KxNDXMspQ1lPyU89-1h6ONRlW45G8Wbc9dCWPRl-uFQ.woff2") format('woff2'); }
+    #root { position: absolute; inset: 0; overflow: hidden; font-family: 'Atkinson Hyperlegible', sans-serif; color: #1B2430; }
+    [data-composition-id="03-your-files"] .ground { position: absolute; inset: 0; background: #E9EDF1; }
+    [data-composition-id="03-your-files"] .stage { position: absolute; inset: 0; }
+    [data-composition-id="03-your-files"] .eyebrow { position: absolute; left: 140px; top: 300px; font-size: 24px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #2F5D8A; }
+    [data-composition-id="03-your-files"] h2 { position: absolute; left: 140px; top: 340px; width: 720px; margin: 0; font-size: 72px; line-height: 1.1; font-weight: 700; letter-spacing: -0.02em; }
+    [data-composition-id="03-your-files"] .pills { position: absolute; left: 140px; top: 470px; width: 720px; display: flex; flex-wrap: wrap; gap: 14px; }
+    [data-composition-id="03-your-files"] .pill { padding: 10px 24px; border-radius: 100px; background: rgba(47, 93, 138, 0.08); color: #2F5D8A; font-size: 28px; }
+    [data-composition-id="03-your-files"] .card { position: absolute; left: 960px; top: 190px; width: 880px; height: 490px; overflow: hidden; border-radius: 14px; border: 1.5px solid rgba(47, 93, 138, 0.2); background: #FFFFFF; }
+    [data-composition-id="03-your-files"] .piece { position: absolute; left: 0; width: 880px; overflow: hidden; }
+    [data-composition-id="03-your-files"] .piece img { position: absolute; width: 3200px; left: -2320px; }
+    /* white masks over the real screenshot rows; scaleY from the bottom edge wipes each row in top-to-bottom */
+    [data-composition-id="03-your-files"] .cover { position: absolute; left: 0; width: 880px; background: #FFFFFF; transform-origin: 50% 100%; }
+  </style>
+  <div data-hf-id="hf-rmim" id="root" data-composition-id="03-your-files" data-width="1920" data-height="1080" data-duration="5.559">
+    <div data-hf-id="hf-424i" id="f03-your-files-ground" class="ground clip" data-start="0" data-duration="5.559" data-track-index="0"></div>
+    <div data-hf-id="hf-wlqr" id="f03-your-files-stage" class="stage clip" data-start="0" data-duration="5.559" data-track-index="1">
+      <div data-hf-id="hf-fiqb" class="eyebrow">Step 1 · set up once</div>
+      <h2 data-hf-id="hf-rg82">Add your files</h2>
+      <div data-hf-id="hf-c9cw" class="pills"><span data-hf-id="hf-r5u1" class="pill">CV</span><span data-hf-id="hf-q7af" class="pill">Job post</span><span data-hf-id="hf-0bsp" class="pill">Notes</span><span data-hf-id="hf-qu22" class="pill">Course material</span></div>
+      <div data-hf-id="hf-vn2y" class="card">
+        <div data-hf-id="hf-emi2" class="piece" style="top: 0; height: 145px;"><img data-hf-id="hf-r8me" src="assets/files-drawer.jpg" alt="" style="top: 0;" /></div>
+        <div data-hf-id="hf-q6eo" class="piece" style="top: 145px; height: 345px;">
+          <img data-hf-id="hf-wkhn" src="assets/files-drawer.jpg" alt="" style="top: -510px;" />
+          <div data-hf-id="hf-iw43" class="cover cover-cv" style="top: 0; height: 115px;"></div>
+          <div data-hf-id="hf-alat" class="cover cover-job" style="top: 115px; height: 130px;"></div>
+          <div data-hf-id="hf-psvm" class="cover cover-paste" style="top: 245px; height: 100px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+      const root = document.querySelector('[data-composition-id="03-your-files"]');
+      const $ = (s) => root.querySelector(s);
+      const tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0-1.0): headline block slides up left; files card slides in from the right edge, header only
+      tl.fromTo($(".card"), { x: 1000 }, { x: 0, duration: 0.95, ease: "power3.out" }, 0);
+      tl.fromTo($(".eyebrow"), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.1);
+      tl.fromTo($("h2"), { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0.2);
+
+      // Scene 2 (1.0-2.4): rows unmask top-down on "your CV", "the job post", then "Paste text instead"
+      tl.fromTo($(".cover-cv"), { scaleY: 1 }, { scaleY: 0, duration: 0.5, ease: "power2.inOut" }, 1.0);
+      tl.fromTo($(".cover-job"), { scaleY: 1 }, { scaleY: 0, duration: 0.5, ease: "power2.inOut" }, 1.55);
+      tl.fromTo($(".cover-paste"), { scaleY: 1 }, { scaleY: 0, duration: 0.45, ease: "power2.inOut" }, 2.05);
+
+      // Scene 3 (2.4-5.059): on "Every answer is built from them" the four pills reveal left to right, then hold
+      tl.fromTo(root.querySelectorAll(".pill"), { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out", stagger: 0.16 }, 2.45);
+
+      tl.set({}, {}, 5.059);
+      window.__timelines["03-your-files"] = tl;
+    })();
+  </script>
+</template>

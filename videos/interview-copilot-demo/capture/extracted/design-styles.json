@@ -1,0 +1,139 @@
+{
+  "typography": [
+    {
+      "role": "display",
+      "fontFamily": "Atkinson Hyperlegible",
+      "fontSize": "32px",
+      "fontWeight": "700",
+      "lineHeight": "48px",
+      "letterSpacing": "normal",
+      "color": "#1B2430",
+      "sampleText": "Interview Copilot"
+    },
+    {
+      "role": "heading",
+      "fontFamily": "Atkinson Hyperlegible",
+      "fontSize": "16px",
+      "fontWeight": "700",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "color": "#4A5563",
+      "sampleText": "Live transcript"
+    },
+    {
+      "role": "body",
+      "fontFamily": "Atkinson Hyperlegible",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "color": "#7B8592",
+      "sampleText": "Press Record when your call starts."
+    },
+    {
+      "role": "body-small",
+      "fontFamily": "Atkinson Hyperlegible",
+      "fontSize": "13.3333px",
+      "fontWeight": "400",
+      "lineHeight": "20px",
+      "letterSpacing": "normal",
+      "color": "#7B8592",
+      "sampleText": "Claude"
+    }
+  ],
+  "spacing": {
+    "observed": [
+      4,
+      6,
+      7,
+      10,
+      12,
+      14,
+      16,
+      18,
+      24
+    ],
+    "baseUnit": 4
+  },
+  "radius": [
+    "8px"
+  ],
+  "shadows": [],
+  "buttons": [
+    {
+      "label": "Record",
+      "background": "#1B2430",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#FFFFFF",
+      "padding": "10px 18px 10px 14px",
+      "borderRadius": "999px",
+      "border": "0px none rgb(255, 255, 255)",
+      "boxShadow": "none",
+      "fontSize": "16.8px",
+      "fontWeight": "700",
+      "height": "45.1875px"
+    },
+    {
+      "label": "A−",
+      "background": "#FFFFFF",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#1B2430",
+      "padding": "7px 12px",
+      "borderRadius": "8px",
+      "border": "1px solid rgb(213, 219, 226)",
+      "boxShadow": "none",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "height": "40px"
+    },
+    {
+      "label": "Answer now",
+      "background": "#2F5D8A",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#FFFFFF",
+      "padding": "10px 16px",
+      "borderRadius": "8px",
+      "border": "0px none rgb(255, 255, 255)",
+      "boxShadow": "none",
+      "fontSize": "16px",
+      "fontWeight": "700",
+      "height": "46px"
+    }
+  ],
+  "cards": [],
+  "nav": {
+    "label": "navigation",
+    "background": "#FFFFFF",
+    "backgroundImage": "",
+    "backdropFilter": "",
+    "color": "#1B2430",
+    "padding": "10px 16px",
+    "borderRadius": "0px",
+    "border": "",
+    "boxShadow": "none",
+    "fontSize": "16px",
+    "fontWeight": "400",
+    "height": "66.1875px"
+  },
+  "chips": [
+    {
+      "label": "0",
+      "background": "#E3ECF5",
+      "color": "#2F5D8A",
+      "padding": "0px 5px",
+      "borderRadius": "999px",
+      "border": "0px none rgb(47, 93, 138)",
+      "boxShadow": "none",
+      "fontSize": "13.6px",
+      "fontWeight": "700",
+      "height": "20.3906px"
+    }
+  ],
+  "statCells": [],
+  "tabs": [],
+  "backgrounds": [],
+  "glass": []
+}

@@ -1,0 +1,100 @@
+{
+  "files": [
+    {
+      "file": "9Bt23C1KxNDXMspQ1lPyU89-1h6ONRlW45G04pIoWQeCbA.woff2",
+      "family": "Atkinson Hyperlegible",
+      "rawFamily": "Atkinson Hyperlegible",
+      "subfamily": "Regular",
+      "postscript": "AtkinsonHyperlegible-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "9Bt23C1KxNDXMspQ1lPyU89-1h6ONRlW45G07JIoWQeCbGWn.woff2",
+      "family": "Atkinson Hyperlegible",
+      "rawFamily": "Atkinson Hyperlegible",
+      "subfamily": "Regular",
+      "postscript": "AtkinsonHyperlegible-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "9Bt43C1KxNDXMspQ1lPyU89-1h6ONRlW45G056IkUwCgblWmLWQ.woff2",
+      "family": "Atkinson Hyperlegible",
+      "rawFamily": "Atkinson Hyperlegible",
+      "subfamily": "Italic",
+      "postscript": "AtkinsonHyperlegible-Italic",
+      "weight": 400,
+      "style": "italic",
+      "variationAxes": [],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "9Bt43C1KxNDXMspQ1lPyU89-1h6ONRlW45G056IqUwCgblWm.woff2",
+      "family": "Atkinson Hyperlegible",
+      "rawFamily": "Atkinson Hyperlegible",
+      "subfamily": "Italic",
+      "postscript": "AtkinsonHyperlegible-Italic",
+      "weight": 400,
+      "style": "italic",
+      "variationAxes": [],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "9Bt73C1KxNDXMspQ1lPyU89-1h6ONRlW45G8Wbc9dCWPRl-uFQ.woff2",
+      "family": "Atkinson Hyperlegible",
+      "rawFamily": "Atkinson Hyperlegible",
+      "subfamily": "Bold",
+      "postscript": "AtkinsonHyperlegible-Bold",
+      "weight": 700,
+      "style": "normal",
+      "variationAxes": [],
+      "identified": true,
+      "isIcon": false
+    },
+    {
+      "file": "9Bt73C1KxNDXMspQ1lPyU89-1h6ONRlW45G8Wbc9eiWPRl-uFV24.woff2",
+      "family": "Atkinson Hyperlegible",
+      "rawFamily": "Atkinson Hyperlegible",
+      "subfamily": "Bold",
+      "postscript": "AtkinsonHyperlegible-Bold",
+      "weight": 700,
+      "style": "normal",
+      "variationAxes": [],
+      "identified": true,
+      "isIcon": false
+    }
+  ],
+  "families": [
+    {
+      "family": "Atkinson Hyperlegible",
+      "weights": [
+        400,
+        700
+      ],
+      "variable": false,
+      "fileCount": 6,
+      "files": [
+        "9Bt23C1KxNDXMspQ1lPyU89-1h6ONRlW45G04pIoWQeCbA.woff2",
+        "9Bt23C1KxNDXMspQ1lPyU89-1h6ONRlW45G07JIoWQeCbGWn.woff2",
+        "9Bt43C1KxNDXMspQ1lPyU89-1h6ONRlW45G056IkUwCgblWmLWQ.woff2",
+        "9Bt43C1KxNDXMspQ1lPyU89-1h6ONRlW45G056IqUwCgblWm.woff2",
+        "9Bt73C1KxNDXMspQ1lPyU89-1h6ONRlW45G8Wbc9dCWPRl-uFQ.woff2",
+        "9Bt73C1KxNDXMspQ1lPyU89-1h6ONRlW45G8Wbc9eiWPRl-uFV24.woff2"
+      ]
+    }
+  ],
+  "unidentified": [],
+  "meta": {
+    "generatedAt": "2026-10-15T14:05:07.930Z",
+    "tool": "fontkit"
+  }
+}

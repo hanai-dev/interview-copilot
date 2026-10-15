@@ -1,0 +1,82 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face { font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 400; src: url("assets/fonts/captured-9Bt23C1KxNDXMspQ1lPyU89-1h6ONRlW45G04pIoWQeCbA.woff2") format('woff2'); }
+    @font-face { font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 700; src: url("assets/fonts/captured-9Bt73C1KxNDXMspQ1lPyU89-1h6ONRlW45G8Wbc9dCWPRl-uFQ.woff2") format('woff2'); }
+    #root { position: absolute; inset: 0; overflow: hidden; font-family: 'Atkinson Hyperlegible', sans-serif; color: #1B2430; }
+    [data-composition-id="08-phone-teleprompter"] .ground { position: absolute; inset: 0; background: #E9EDF1; }
+    [data-composition-id="08-phone-teleprompter"] .stage { position: absolute; inset: 0; }
+    [data-composition-id="08-phone-teleprompter"] .eyebrow { position: absolute; left: 180px; top: 300px; font-size: 26px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #2F5D8A; }
+    [data-composition-id="08-phone-teleprompter"] h2 { position: absolute; left: 180px; top: 342px; margin: 0; font-size: 92px; line-height: 1.05; font-weight: 700; letter-spacing: -0.02em; }
+    [data-composition-id="08-phone-teleprompter"] .legend { position: absolute; left: 180px; top: 480px; display: flex; gap: 16px; }
+    [data-composition-id="08-phone-teleprompter"] .key { display: flex; align-items: center; gap: 14px; padding: 12px 26px 12px 14px; border-radius: 100px; background: #0B0B0B; font-size: 30px; transform-origin: 50% 50%; }
+    [data-composition-id="08-phone-teleprompter"] .key i { display: block; width: 26px; height: 26px; border-radius: 50%; }
+    [data-composition-id="08-phone-teleprompter"] .key.read { color: #7D6747; }
+    [data-composition-id="08-phone-teleprompter"] .key.read i { background: #4A3D2C; }
+    [data-composition-id="08-phone-teleprompter"] .key.now { color: #C99A5B; }
+    [data-composition-id="08-phone-teleprompter"] .key.now i { background: #C99A5B; }
+    [data-composition-id="08-phone-teleprompter"] .qr { position: absolute; left: 180px; top: 580px; padding: 10px 24px; border-radius: 100px; background: rgba(47, 93, 138, 0.08); color: #2F5D8A; font-size: 28px; }
+    [data-composition-id="08-phone-teleprompter"] .phone { position: absolute; left: 1100px; top: 46px; width: 501px; height: 834px; padding: 14px; border-radius: 56px; background: #0B0B0B; box-sizing: border-box; transform-origin: 50% 70%; }
+    [data-composition-id="08-phone-teleprompter"] .screen { position: relative; width: 473px; height: 806px; overflow: hidden; border-radius: 44px; background: #000000; }
+    [data-composition-id="08-phone-teleprompter"] .screen img { position: absolute; left: 0; top: 0; width: 473px; }
+  </style>
+  <div data-hf-id="hf-3qap" id="root" data-composition-id="08-phone-teleprompter" data-width="1920" data-height="1080" data-duration="6.427">
+    <div data-hf-id="hf-1nkp" id="f08-phone-teleprompter-ground" class="ground clip" data-start="0" data-duration="6.427" data-track-index="0"></div>
+    <div data-hf-id="hf-hvmu" id="f08-phone-teleprompter-stage" class="stage clip" data-start="0" data-duration="6.427" data-track-index="1">
+      <div data-hf-id="hf-qqxr" class="eyebrow">On your phone</div>
+      <h2 data-hf-id="hf-q55i">Teleprompter</h2>
+      <div data-hf-id="hf-ovnn" class="legend">
+        <div data-hf-id="hf-gwwb" class="key read"><i data-hf-id="hf-wt6k"></i>read</div>
+        <div data-hf-id="hf-sg5c" class="key now"><i data-hf-id="hf-zeb8"></i>next</div>
+      </div>
+      <div data-hf-id="hf-j751" class="qr">Scan the QR code to open it</div>
+      <div data-hf-id="hf-kda4" class="phone">
+        <div data-hf-id="hf-cdmk" class="screen">
+          <img data-hf-id="hf-f540" src="assets/phone-read-00.png" alt="Phone teleprompter, fresh answer, nothing read yet" data-layout-allow-overflow />
+          <img data-hf-id="hf-bmyu" src="assets/phone-read-22.png" alt="Phone teleprompter, key line read" data-layout-allow-overflow />
+          <img data-hf-id="hf-nj5z" src="assets/phone-read-44.png" alt="Phone teleprompter, first bullet in progress" data-layout-allow-overflow />
+          <img data-hf-id="hf-3htc" src="assets/phone-read-66.png" alt="Phone teleprompter following the reader's voice" data-layout-allow-overflow />
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const S = '[data-composition-id="08-phone-teleprompter"] ';
+      const tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0-1.4s): phone slides in from the right, tilt settles flat; eyebrow, then headline.
+      tl.fromTo(S + ".phone", { x: 300, rotation: 5, opacity: 0 }, { x: 0, rotation: 0, opacity: 1, duration: 1.2, ease: "power3.out" }, 0);
+      tl.fromTo(S + ".eyebrow", { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 0.1);
+      tl.fromTo(S + "h2", { y: 36, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0.8);
+
+      // Scene 2 (1.4-2.6s): screen holds on the fresh answer (no tweens).
+
+      // Scene 3 (2.6-5.0s): screen advances 00 -> 22 -> 44 -> 66, each a short upward scroll-crossfade.
+      // Advance windows pre-computed once (dynamic-content-sequencing), spaced through the VO line.
+      const FIRST_ADVANCE = 2.6;
+      const STEP = 0.75;
+      const SWAP = 0.45;
+      const DRIFT = 22;
+      const shots = gsap.utils.toArray(S + ".screen img");
+      const ADVANCES = shots.slice(1).map((el, i) => ({ el, prev: shots[i], start: FIRST_ADVANCE + i * STEP }));
+      ADVANCES.forEach(({ el, prev, start }) => {
+        tl.fromTo(el, { y: DRIFT, opacity: 0 }, { y: 0, opacity: 1, duration: SWAP, ease: "power2.out" }, start);
+        tl.fromTo(prev, { y: 0, opacity: 1 }, { y: -DRIFT, opacity: 0, duration: SWAP, ease: "power2.in", immediateRender: false }, start);
+      });
+
+      // With the first advance: "read" then "next" legend pills pop (smooth settle, no overshoot).
+      gsap.utils.toArray(S + ".key").forEach((el, i) => {
+        tl.fromTo(el, { scale: 0, opacity: 0, y: 12 }, { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, FIRST_ADVANCE + i * 0.08);
+      });
+
+      // On "as you read": QR pill slides up.
+      tl.fromTo(S + ".qr", { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 4.4);
+
+      // Scene 4 (5.0-6.027s): hold still on phone-read-66.
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["08-phone-teleprompter"] = tl;
+    })();
+  </script>
+</template>

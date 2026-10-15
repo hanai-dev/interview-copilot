@@ -1,0 +1,78 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face { font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 400; src: url("assets/fonts/captured-9Bt23C1KxNDXMspQ1lPyU89-1h6ONRlW45G04pIoWQeCbA.woff2") format('woff2'); }
+    @font-face { font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 700; src: url("assets/fonts/captured-9Bt73C1KxNDXMspQ1lPyU89-1h6ONRlW45G8Wbc9dCWPRl-uFQ.woff2") format('woff2'); }
+    #root { position: absolute; inset: 0; overflow: hidden; font-family: 'Atkinson Hyperlegible', sans-serif; color: #1B2430; }
+    [data-composition-id="09-two-seconds"] .ground { position: absolute; inset: 0; background: #FFFFFF; }
+    [data-composition-id="09-two-seconds"] .stage { position: absolute; inset: 0; }
+    [data-composition-id="09-two-seconds"] .cam { position: absolute; inset: 0; transform-origin: 50% 50%; will-change: transform; }
+    [data-composition-id="09-two-seconds"] .eyebrow { position: absolute; left: 160px; top: 180px; font-size: 26px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #2F5D8A; }
+    [data-composition-id="09-two-seconds"] .hero { position: absolute; left: 150px; top: 220px; font-size: 300px; line-height: 1; font-weight: 700; letter-spacing: -0.03em; color: #2F5D8A; }
+    [data-composition-id="09-two-seconds"] .hn { display: inline-block; transform-origin: 0% 80%; font-variant-numeric: tabular-nums; }
+    [data-composition-id="09-two-seconds"] .sx { display: inline-block; }
+    [data-composition-id="09-two-seconds"] .label { position: absolute; left: 160px; top: 560px; width: 760px; font-size: 38px; line-height: 1.4; color: #4A5563; }
+    [data-composition-id="09-two-seconds"] .m { position: absolute; left: 1080px; width: 680px; height: 180px; padding: 30px 40px; box-sizing: border-box; border-radius: 14px; background: rgba(47, 93, 138, 0.04); border: 1.5px solid rgba(47, 93, 138, 0.2); }
+    [data-composition-id="09-two-seconds"] .m .v { font-size: 76px; line-height: 1; font-weight: 700; color: #2F5D8A; transform-origin: 0% 70%; font-variant-numeric: tabular-nums; }
+    [data-composition-id="09-two-seconds"] .m .k { margin-top: 14px; font-size: 30px; color: #4A5563; }
+    [data-composition-id="09-two-seconds"] .plus { position: absolute; left: 1395px; top: 380px; font-size: 56px; font-weight: 700; color: #7B8592; }
+  </style>
+  <div data-hf-id="hf-89p3" id="root" data-composition-id="09-two-seconds" data-width="1920" data-height="1080" data-duration="4.372">
+    <div data-hf-id="hf-7ml3" id="f09-two-seconds-ground" class="ground clip" data-start="0" data-duration="4.372" data-track-index="0"></div>
+    <div data-hf-id="hf-sw9g" id="f09-two-seconds-stage" class="stage clip" data-start="0" data-duration="4.372" data-track-index="1">
+      <div data-hf-id="hf-12x1" class="cam">
+        <div data-hf-id="hf-qeul" class="eyebrow">Their last word to your first line</div>
+        <div data-hf-id="hf-hie8" class="hero"><span data-hf-id="hf-06of" class="hn">~<span data-hf-id="hf-5dbt" class="d">0</span><span data-hf-id="hf-3kut" class="sx">s</span></span></div>
+        <div data-hf-id="hf-h9zi" class="label">measured in the demo interview</div>
+        <div data-hf-id="hf-o0ur" class="m m1" style="top: 190px;"><div data-hf-id="hf-k6qw" class="v">~1s</div><div data-hf-id="hf-2nol" class="k">pause that ends their turn</div></div>
+        <div data-hf-id="hf-94up" class="plus">+</div>
+        <div data-hf-id="hf-mi3x" class="m m2" style="top: 470px;"><div data-hf-id="hf-ujz3" class="v"><span data-hf-id="hf-44nx" class="n">0.0</span>s</div><div data-hf-id="hf-x098" class="k">to the answer's first words</div></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const root = document.querySelector('[data-composition-id="09-two-seconds"]');
+      const q = (s) => root.querySelector(s);
+      const cam = q(".cam"), hero = q(".hero"), hn = q(".hn"), d = q(".d"), sx = q(".sx");
+      const card2 = q(".m2"), v2 = q(".m2 .v"), n2 = q(".m2 .n");
+      const tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0-1.6): eyebrow, ghosted hero, "~1s" card, "+", "1.0s" card counting 0.0 -> 1.0
+      tl.fromTo(q(".eyebrow"), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 0.05);
+      tl.fromTo(hero, { opacity: 0 }, { opacity: 0.3, duration: 0.4, ease: "power1.out" }, 0.15);
+      tl.fromTo(q(".m1"), { opacity: 0, x: 90 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 0.3);
+      tl.fromTo(q(".plus"), { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(1.7)" }, 0.7);
+      tl.fromTo(card2, { opacity: 0, x: 90 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 0.8);
+      tl.fromTo(v2, { scale: 0.6 }, {
+        scale: 1, duration: 0.7, ease: "power3.out",
+        onUpdate() { n2.textContent = this.ratio.toFixed(1); },
+      }, 0.85);
+
+      // Scene 2 (1.6-2.6): hero counts 0 -> 2 while scale grows (one tween = one beat), then the "s" lands
+      tl.to(hero, { opacity: 1, duration: 0.45, ease: "power2.out" }, 1.6);
+      tl.fromTo(hn, { scale: 0.55 }, {
+        scale: 1, duration: 0.9, ease: "power2.out",
+        onUpdate() { d.textContent = Math.round(this.ratio * 2); },
+      }, 1.6);
+      tl.fromTo(sx, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, ease: "back.out(1.6)" }, 2.5);
+
+      // Camera: one early push toward the hero + faint drift; both tweens share the one writer
+      const phase = { s: 1 }, drift = { p: 0 };
+      const writeCam = () => {
+        const k = phase.s - 1; // counter-translate nudges the push toward the hero (left)
+        const dx = Math.sin(drift.p) * 3 + k * 900;
+        const dy = Math.sin(drift.p * 1.3) * 1.5 + k * 260;
+        cam.style.transform = `scale(${phase.s}) translate(${dx}px, ${dy}px)`;
+      };
+      tl.to(drift, { p: Math.PI * 2, duration: 3.872, ease: "none", onUpdate: writeCam }, 0);
+      tl.to(phase, { s: 1.03, duration: 0.6, ease: "power2.out", onUpdate: writeCam }, 1.6);
+
+      // Scene 3 (2.6-3.872): the receipt line fades up, then hold
+      tl.fromTo(q(".label"), { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 2.7);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["09-two-seconds"] = tl;
+    })();
+  </script>
+</template>

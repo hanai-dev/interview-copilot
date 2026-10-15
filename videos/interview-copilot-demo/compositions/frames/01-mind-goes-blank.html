@@ -1,0 +1,94 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face { font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 400; src: url("assets/fonts/captured-9Bt23C1KxNDXMspQ1lPyU89-1h6ONRlW45G04pIoWQeCbA.woff2") format('woff2'); }
+    @font-face { font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 700; src: url("assets/fonts/captured-9Bt73C1KxNDXMspQ1lPyU89-1h6ONRlW45G8Wbc9dCWPRl-uFQ.woff2") format('woff2'); }
+    #root { position: absolute; inset: 0; overflow: hidden; font-family: 'Atkinson Hyperlegible', sans-serif; color: #1B2430; }
+    [data-composition-id="01-mind-goes-blank"] .ground { position: absolute; inset: 0; background: #FFFFFF; }
+    [data-composition-id="01-mind-goes-blank"] .stage { position: absolute; inset: 0; }
+    [data-composition-id="01-mind-goes-blank"] .them {
+      position: absolute; left: 200px; top: 230px; width: 1260px; padding: 36px 52px 44px;
+      background: #E3ECF5; border-left: 8px solid #2F5D8A; border-radius: 0 22px 22px 0;
+      will-change: transform, opacity;
+    }
+    [data-composition-id="01-mind-goes-blank"] .who { font-size: 30px; font-weight: 700; margin-bottom: 14px; }
+    [data-composition-id="01-mind-goes-blank"] .them .who { color: #2F5D8A; }
+    [data-composition-id="01-mind-goes-blank"] .them .txt { font-size: 60px; line-height: 1.25; letter-spacing: -0.01em; }
+    /* untyped remainder keeps the final wrap + bubble height from frame one */
+    [data-composition-id="01-mind-goes-blank"] .them .ghost { color: transparent; }
+    [data-composition-id="01-mind-goes-blank"] .caret { display: inline-block; width: 6px; height: 60px; margin-left: 8px; vertical-align: -8px; background: #7B8592; }
+    [data-composition-id="01-mind-goes-blank"] .me {
+      position: absolute; right: 200px; top: 660px; width: 380px; padding: 30px 44px 36px;
+      background: #E8F0E0; border-radius: 22px; text-align: right;
+      transform-origin: 100% 100%; will-change: transform, opacity;
+    }
+    [data-composition-id="01-mind-goes-blank"] .me .who { color: #4F7233; }
+    [data-composition-id="01-mind-goes-blank"] .me .txt { position: relative; font-size: 64px; line-height: 1; color: #7B8592; letter-spacing: 0.1em; }
+    /* absolute so the dots never shift: the landed frame matches the sketch */
+    [data-composition-id="01-mind-goes-blank"] .me-caret { position: absolute; right: -20px; top: 6px; width: 6px; height: 56px; background: #4F7233; }
+  </style>
+  <div data-hf-id="hf-6yt0" id="root" data-composition-id="01-mind-goes-blank" data-width="1920" data-height="1080" data-duration="4.131">
+    <div data-hf-id="hf-f5dy" id="f01-mind-goes-blank-ground" class="ground clip" data-start="0" data-duration="4.131" data-track-index="0"></div>
+    <div data-hf-id="hf-2pqz" id="f01-mind-goes-blank-stage" class="stage clip" data-start="0" data-duration="4.131" data-track-index="1">
+      <div data-hf-id="hf-z1em" class="them">
+        <div data-hf-id="hf-hghc" class="who">Interviewer</div>
+        <div data-hf-id="hf-kvio" class="txt"><span data-hf-id="hf-7aln" class="typed"></span><span data-hf-id="hf-uuxe" class="caret"></span><span data-hf-id="hf-pcet" class="ghost">Can you describe a time you had to deliver a project under a really tight deadline?</span></div>
+      </div>
+      <div data-hf-id="hf-64xm" class="me">
+        <div data-hf-id="hf-mana" class="who">Me</div>
+        <div data-hf-id="hf-839e" class="txt">…<span data-hf-id="hf-sq8h" class="me-caret"></span></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const ROOT = document.querySelector('[data-composition-id="01-mind-goes-blank"]');
+      const q = (s) => ROOT.querySelector(s);
+      const typed = q(".them .typed");
+      const ghost = q(".them .ghost");
+      const themCaret = q(".them .caret");
+      const meCaret = q(".me-caret");
+
+      const DUR = 3.731;
+      const QUESTION = "Can you describe a time you had to deliver a project under a really tight deadline?";
+      const T_TYPE0 = 0.3;   // bubble mostly settled, keystrokes begin
+      const T_TYPE1 = 1.95;  // last keystroke, just after "tough question"
+      const T_HANDOFF = 2.1; // "Your mind goes blank": Interviewer caret goes inert
+      const ME_IN = 2.12;
+      const BLINK0 = 2.36, BLINK1 = 3.56, BLINKS = 3; // three finite blinks, then hold still
+      const THEM = "#2F5D8A", DIM = "#7B8592";
+
+      // Discrete keystroke schedule: deterministic jitter + a beat at each word break,
+      // normalised so the last key lands exactly on T_TYPE1.
+      const gaps = Array.from(QUESTION, (ch, i) => 1 + 0.35 * Math.sin(i * 2.3) + (QUESTION[i - 1] === " " ? 1.4 : 0));
+      const total = gaps.reduce((a, b) => a + b, 0);
+      let acc = 0;
+      const KEY_T = gaps.map((g) => T_TYPE0 + ((acc += g) / total) * (T_TYPE1 - T_TYPE0));
+
+      // Pure function of time: seek-safe in either direction.
+      function render(t) {
+        let n = KEY_T.length;
+        while (n > 0 && KEY_T[n - 1] > t) n--;
+        typed.textContent = QUESTION.slice(0, n);
+        ghost.textContent = QUESTION.slice(n);
+        themCaret.style.background = t < T_HANDOFF ? THEM : DIM;
+        const p = ((t - BLINK0) / (BLINK1 - BLINK0)) * Math.PI * 2 * BLINKS;
+        meCaret.style.opacity = t >= BLINK0 && t < BLINK1 && Math.sin(p) > 0 ? "1" : "0";
+      }
+
+      const tl = gsap.timeline({ paused: true });
+      // Scene 1: Interviewer bubble slides in on a long-tail settle, label trailing.
+      tl.fromTo(q(".them"), { x: -220, opacity: 0 }, { x: 0, opacity: 1, duration: 0.75, ease: "expo.out" }, 0);
+      tl.fromTo(q(".them .who"), { x: -24, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.12);
+      // Scene 2: Me bubble rises in from its corner, smooth settle, no overshoot.
+      tl.fromTo(q(".me"), { scale: 0, opacity: 0, y: 24 }, { scale: 1, opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, ME_IN);
+      // Type-on + caret states, driven across the full frame.
+      const driver = { t: 0 };
+      tl.to(driver, { t: DUR, duration: DUR, ease: "none", onUpdate: () => render(driver.t) }, 0);
+      render(0);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["01-mind-goes-blank"] = tl;
+    })();
+  </script>
+</template>

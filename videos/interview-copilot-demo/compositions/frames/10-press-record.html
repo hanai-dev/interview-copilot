@@ -1,0 +1,104 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face { font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 400; src: url("assets/fonts/captured-9Bt23C1KxNDXMspQ1lPyU89-1h6ONRlW45G04pIoWQeCbA.woff2") format('woff2'); }
+    @font-face { font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 700; src: url("assets/fonts/captured-9Bt73C1KxNDXMspQ1lPyU89-1h6ONRlW45G8Wbc9dCWPRl-uFQ.woff2") format('woff2'); }
+    #root { position: absolute; inset: 0; overflow: hidden; font-family: 'Atkinson Hyperlegible', sans-serif; color: #1B2430; }
+    [data-composition-id="10-press-record"] .ground { position: absolute; inset: 0; background: #FFFFFF; }
+    [data-composition-id="10-press-record"] .rings { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
+    [data-composition-id="10-press-record"] .ring { fill: none; stroke: rgba(47, 93, 138, 0.12); stroke-width: 1.5; }
+    [data-composition-id="10-press-record"] .stage { position: absolute; inset: 0; }
+    [data-composition-id="10-press-record"] .line { position: absolute; left: 930px; top: 236px; width: 60px; height: 4px; border-radius: 2px; background: #2F5D8A; }
+    [data-composition-id="10-press-record"] h1 { position: absolute; left: 0; right: 0; top: 262px; margin: 0; text-align: center; font-size: 104px; line-height: 1.05; font-weight: 700; letter-spacing: -0.02em; }
+    [data-composition-id="10-press-record"] .ripple { position: absolute; left: 660px; top: 232px; width: 600px; height: 600px; border-radius: 50%; border: 2px solid rgba(200, 55, 45, 0.55); box-sizing: border-box; pointer-events: none; }
+    [data-composition-id="10-press-record"] .rec { position: absolute; left: 760px; top: 470px; width: 400px; height: 124px; color: #FFFFFF; font-size: 54px; font-weight: 700; }
+    [data-composition-id="10-press-record"] .shape { position: absolute; inset: 0; border-radius: 62px; background: #1B2430; overflow: hidden; }
+    [data-composition-id="10-press-record"] .dot { position: absolute; left: 81.4px; top: 44px; width: 36px; height: 36px; border-radius: 18px; background: #C8372D; }
+    [data-composition-id="10-press-record"] .label { position: absolute; top: 0; line-height: 124px; white-space: nowrap; }
+    [data-composition-id="10-press-record"] .label-rec { left: 141.4px; }
+    [data-composition-id="10-press-record"] .label-stop { left: 168.5px; }
+    [data-composition-id="10-press-record"] .colophon { position: absolute; left: 0; right: 0; top: 820px; text-align: center; font-size: 24px; color: #7B8592; }
+    [data-composition-id="10-press-record"] .cursor { position: absolute; left: -3.2px; top: -3.2px; width: 45px; height: 64px; overflow: visible; transform-origin: 3.2px 3.2px; pointer-events: none; }
+  </style>
+  <div data-hf-id="hf-4ypf" id="root" data-composition-id="10-press-record" data-width="1920" data-height="1080" data-duration="5.248">
+    <div data-hf-id="hf-nc3z" id="f10-press-record-ground" class="ground clip" data-start="0" data-duration="5.248" data-track-index="0">
+      <svg data-hf-id="hf-lmnk" class="rings" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+        <circle data-hf-id="hf-8cto" class="ring" cx="960" cy="532" r="249.25" transform="rotate(-90 960 532)" />
+        <circle data-hf-id="hf-d5j2" class="ring" cx="960" cy="532" r="399.25" transform="rotate(-90 960 532)" />
+        <circle data-hf-id="hf-xuec" class="ring" cx="960" cy="532" r="559.25" transform="rotate(-90 960 532)" />
+      </svg>
+    </div>
+    <div data-hf-id="hf-wkdo" id="f10-press-record-stage" class="stage clip" data-start="0" data-duration="5.248" data-track-index="1">
+      <div data-hf-id="hf-np12" class="line"></div>
+      <h1 data-hf-id="hf-sbz5">Interview Copilot</h1>
+      <div data-hf-id="hf-2qfi" class="ripple"></div>
+      <div data-hf-id="hf-0abm" class="rec">
+        <div data-hf-id="hf-bvtz" class="shape"></div>
+        <i data-hf-id="hf-6bgx" class="dot"></i>
+        <span data-hf-id="hf-iej3" class="label label-rec">Record</span>
+        <span data-hf-id="hf-9ago" class="label label-stop">Stop</span>
+      </div>
+      <div data-hf-id="hf-otmd" class="colophon">Runs on your Windows PC · Check consent and your employer's rules before using AI help</div>
+      <svg data-hf-id="hf-c7jg" class="cursor" viewBox="0 0 28 40" xmlns="http://www.w3.org/2000/svg">
+        <path data-hf-id="hf-61yb" d="M2 2 L2 31 L9.5 24 L14.5 35.5 L19.5 33.3 L14.6 22 L24.5 22 Z" fill="#1B2430" stroke="#FFFFFF" stroke-width="1.25" stroke-linejoin="round" />
+      </svg>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const root = document.querySelector('[data-composition-id="10-press-record"]');
+      const q = (s) => root.querySelector(s);
+      const tl = gsap.timeline({ paused: true });
+
+      const btn = q(".rec");
+      const shape = q(".shape");
+      const dot = q(".dot");
+      const cursor = q(".cursor");
+
+      // Scene 1 (0.0-1.2s) "Interview Copilot": rings draw outward from center (svg-path-draw),
+      // accent line draws, wordmark slides up.
+      root.querySelectorAll(".ring").forEach((ring, i) => {
+        const len = ring.getTotalLength();
+        ring.style.strokeDasharray = `${len}`;
+        tl.fromTo(ring, { strokeDashoffset: len }, { strokeDashoffset: 0, duration: 0.9, ease: "power2.out" }, 0.0 + i * 0.14);
+      });
+      tl.fromTo(q(".line"), { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: "power2.out" }, 0.05);
+      tl.fromTo(q("h1"), { y: 44, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, 0.1);
+
+      // Scene 2 (1.2-2.4s) "Try the demo interview": the red record dot pops at the pill's center,
+      // then the pill condenses out around it (card-morph-anchor: one tween, uniform scale + paint),
+      // the dot riding to its slot; "Record" fades in over the last 40% of the morph.
+      const MORPH_START = 1.55;
+      const MORPH_DUR = 0.8;
+      tl.fromTo(dot, { scale: 0 }, { scale: 1, duration: 0.3, ease: "back.out(1.7)" }, 1.2);
+      tl.fromTo(shape, { scale: 0, backgroundColor: "#C8372D" }, { scale: 1, backgroundColor: "#1B2430", duration: MORPH_DUR, ease: "power2.inOut" }, MORPH_START);
+      tl.fromTo(dot, { x: 100.6 }, { x: 0, duration: MORPH_DUR, ease: "power2.inOut" }, MORPH_START);
+      tl.fromTo(q(".label-rec"), { opacity: 0 }, { opacity: 1, duration: MORPH_DUR * 0.4, ease: "power1.out" }, MORPH_START + MORPH_DUR * 0.6);
+
+      // Scene 3 (2.4-3.3s) "then press Record": cursor decelerates in from lower-right,
+      // tip landing a few px off the pill's center.
+      tl.fromTo(cursor, { x: 1990, y: 830 }, { x: 968, y: 541, duration: 0.75, ease: "power3.out" }, 2.45);
+
+      // Scene 4 (3.3-5.2s): lockstep press + spring release (physics-press-reaction), flip to Stop,
+      // one soft ripple (cursor-click-ripple), colophon fades up, hold.
+      const PRESS_AT = 3.3;
+      const FLIP_AT = 3.36;
+      tl.to([btn, cursor], { scale: 0.9, duration: 0.12, ease: "power1.in" }, PRESS_AT);
+      tl.to([btn, cursor], { scale: 1, duration: 0.55, ease: "back.out(2)" }, PRESS_AT + 0.15);
+      tl.to(shape, { backgroundColor: "#C8372D", duration: 0.3, ease: "power2.out" }, FLIP_AT);
+      tl.to(dot, { x: 30.1, scale: 30 / 36, borderRadius: 7.2, backgroundColor: "#FFFFFF", duration: 0.35, ease: "power2.inOut" }, FLIP_AT);
+      tl.to(q(".label-rec"), { opacity: 0, duration: 0.12, ease: "power1.in" }, FLIP_AT);
+      tl.fromTo(q(".label-stop"), { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power1.out" }, FLIP_AT + 0.14);
+      const ripple = q(".ripple");
+      tl.fromTo(ripple, { scale: 0.2 }, { scale: 1, duration: 0.9, ease: "power2.out" }, FLIP_AT + 0.04);
+      tl.fromTo(ripple, { opacity: 0 }, { opacity: 1, duration: 0.08, ease: "power1.out" }, FLIP_AT + 0.04);
+      tl.to(ripple, { opacity: 0, duration: 0.8, ease: "power1.in" }, FLIP_AT + 0.12);
+      // Cursor lets go and drifts off the label so the pressed state reads clean.
+      tl.to(cursor, { x: 1078, y: 604, duration: 0.7, ease: "power2.inOut" }, 4.0);
+      tl.fromTo(q(".colophon"), { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power2.out" }, 3.85);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["10-press-record"] = tl;
+    })();
+  </script>
+</template>

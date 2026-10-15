@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "preferences": {
+    "destination": {
+      "value": "youtube",
+      "confirmed_in": [
+        "interview-copilot-demo"
+      ],
+      "updated_at": "2026-10-15T14:02:50.324Z"
+    },
+    "aspect": {
+      "value": "1920x1080",
+      "confirmed_in": [
+        "interview-copilot-demo"
+      ],
+      "updated_at": "2026-10-15T14:02:50.440Z"
+    },
+    "language": {
+      "value": "en",
+      "confirmed_in": [
+        "interview-copilot-demo"
+      ],
+      "updated_at": "2026-10-15T14:02:50.559Z"
+    },
+    "flow": {
+      "value": "automation",
+      "confirmed_in": [
+        "interview-copilot-demo"
+      ],
+      "updated_at": "2026-10-15T14:02:50.676Z"
+    },
+    "storyboard": {
+      "value": "yes",
+      "confirmed_in": [
+        "interview-copilot-demo"
+      ],
+      "updated_at": "2026-10-15T14:02:50.787Z"
+    },
+    "style_preset.product-launch-video": {
+      "value": "blue-professional",
+      "confirmed_in": [
+        "interview-copilot-demo"
+      ],
+      "updated_at": "2026-10-15T14:09:37.144Z"
+    }
+  },
+  "sightings": {}
+}

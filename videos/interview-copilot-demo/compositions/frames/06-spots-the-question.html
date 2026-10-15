@@ -1,0 +1,71 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face { font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 400; src: url("assets/fonts/captured-9Bt23C1KxNDXMspQ1lPyU89-1h6ONRlW45G04pIoWQeCbA.woff2") format('woff2'); }
+    @font-face { font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 700; src: url("assets/fonts/captured-9Bt73C1KxNDXMspQ1lPyU89-1h6ONRlW45G8Wbc9dCWPRl-uFQ.woff2") format('woff2'); }
+    #root { position: absolute; inset: 0; overflow: hidden; font-family: 'Atkinson Hyperlegible', sans-serif; color: #1B2430; }
+    [data-composition-id="06-spots-the-question"] .ground { position: absolute; inset: 0; background: #E9EDF1; }
+    [data-composition-id="06-spots-the-question"] .stage { position: absolute; inset: 0; }
+    [data-composition-id="06-spots-the-question"] .col { position: absolute; left: 140px; top: 50px; width: 1096px; height: 810px; overflow: hidden; border-radius: 14px; border: 1.5px solid rgba(47, 93, 138, 0.2); background: #E9EDF1; }
+    [data-composition-id="06-spots-the-question"] .world { position: absolute; inset: 0; transform-origin: 50% 50%; will-change: transform; }
+    [data-composition-id="06-spots-the-question"] .col img { position: absolute; width: 2880px; left: 0; top: -144px; }
+    [data-composition-id="06-spots-the-question"] .ring { position: absolute; left: 197px; top: 63px; width: 227px; height: 54px; box-sizing: border-box; border: 3px solid #7B8592; border-radius: 100px; }
+    [data-composition-id="06-spots-the-question"] .mark { position: absolute; left: 201px; top: 646px; width: 132px; height: 44px; border-radius: 100px; background: #FFE873; mix-blend-mode: multiply; transform-origin: 0% 50%; }
+    [data-composition-id="06-spots-the-question"] .tick { position: absolute; height: 2px; background: rgba(47, 93, 138, 0.35); }
+    [data-composition-id="06-spots-the-question"] .tick-skip { transform-origin: 100% 50%; }
+    [data-composition-id="06-spots-the-question"] .tick-flag { transform-origin: 0% 50%; }
+    [data-composition-id="06-spots-the-question"] .tag { position: absolute; left: 1330px; padding: 14px 34px; border-radius: 100px; font-size: 40px; white-space: nowrap; }
+    [data-composition-id="06-spots-the-question"] .tag.skip { top: 128px; background: #FFFFFF; color: #7B8592; border: 1.5px solid rgba(47, 93, 138, 0.2); }
+    [data-composition-id="06-spots-the-question"] .tag.flag { top: 718px; background: #FFE873; color: #2A2300; font-weight: 700; transform-origin: 0% 50%; }
+  </style>
+  <div data-hf-id="hf-db70" id="root" data-composition-id="06-spots-the-question" data-width="1920" data-height="1080" data-duration="4.507">
+    <div data-hf-id="hf-kfek" id="f06-spots-the-question-ground" class="ground clip" data-start="0" data-duration="4.507" data-track-index="0"></div>
+    <div data-hf-id="hf-t12t" id="f06-spots-the-question-stage" class="stage clip" data-start="0" data-duration="4.507" data-track-index="1">
+      <div data-hf-id="hf-7s1i" class="col">
+        <div data-hf-id="hf-oy59" class="world" data-layout-allow-overflow>
+          <img data-hf-id="hf-ta5x" src="assets/question-detected.jpg" alt="Transcript with question chips" />
+          <div data-hf-id="hf-0qcu" class="ring"></div>
+          <div data-hf-id="hf-9gvv" class="mark"></div>
+        </div>
+      </div>
+      <div data-hf-id="hf-0mfh" class="tick tick-skip" style="left: 1240px; top: 160px; width: 80px;"></div>
+      <div data-hf-id="hf-j7hf" class="tick tick-flag" style="left: 1240px; top: 750px; width: 80px;"></div>
+      <div data-hf-id="hf-rc5n" class="tag skip">small talk · skipped</div>
+      <div data-hf-id="hf-1w1t" class="tag flag">question · flagged</div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const ROOT = document.querySelector('[data-composition-id="06-spots-the-question"]');
+      const q = (s) => ROOT.querySelector(s);
+      const tl = gsap.timeline({ paused: true });
+
+      // Camera: one .world wrapper, GSAP composes translate(x,y) scale(s) (single-wrapper form).
+      // World box 1096x810, origin at center; edge-clamped so no out-of-crop pixels show:
+      // top-left clamp x = 548(S-1), y = 405(S-1); bottom clamp y = -405(S-1).
+      const world = q(".world");
+      const S0 = 1.3, S1 = 1.34;
+      const TOP0 = { scale: S0, x: 548 * (S0 - 1), y: 405 * (S0 - 1) };
+      const TOP1 = { scale: S1, x: 548 * (S1 - 1), y: 405 * (S1 - 1) };
+      const LOW1 = { scale: S1, x: 548 * (S1 - 1), y: -405 * (S1 - 1) };
+
+      // Scene 1 (0-1.5s): pushed in on the small-talk row, slow creep.
+      tl.fromTo(world, TOP0, { ...TOP1, duration: 1.5, ease: "none" }, 0);
+      tl.fromTo(q(".tag.skip"), { x: 48, opacity: 0 }, { x: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 0.3);
+      tl.fromTo(q(".tick-skip"), { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "power2.out" }, 0.55);
+      tl.fromTo(q(".ring"), { scale: 0, rotation: -2, opacity: 0 }, { scale: 1, rotation: -2, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.85);
+
+      // Scene 2 (1.5-2.4s): one decisive pan down the column to the deadline question.
+      tl.fromTo(world, TOP1, { ...LOW1, duration: 0.9, ease: "power3.inOut", immediateRender: false }, 1.5);
+
+      // Scene 3 (2.4-4.0s): highlight sweep on the chip, flag pill pops, camera pulls back to the sketch.
+      tl.fromTo(q(".mark"), { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: "power2.out" }, 2.45);
+      tl.fromTo(q(".tick-flag"), { scaleX: 0 }, { scaleX: 1, duration: 0.3, ease: "power2.out" }, 2.6);
+      tl.fromTo(q(".tag.flag"), { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.55, ease: "power3.out" }, 2.7);
+      tl.fromTo(world, LOW1, { scale: 1, x: 0, y: 0, duration: 0.85, ease: "power3.inOut", immediateRender: false }, 2.75);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["06-spots-the-question"] = tl;
+    })();
+  </script>
+</template>
