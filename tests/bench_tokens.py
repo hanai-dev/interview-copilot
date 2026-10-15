@@ -11,18 +11,29 @@ Thinking tokens can't be simulated and are left out; output is a fixed ~80-word 
 from __future__ import annotations
 
 import asyncio
+import atexit
 import hashlib
 import json
+import logging
 import os
 import re
+import shutil
 import sys
 import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-os.environ["COPILOT_DATA_DIR"] = tempfile.mkdtemp(prefix="copilot-bench-")
+LIVE = "--live" in sys.argv  # real Claude answers with the key from .env: costs real money
+_key = ""
+if LIVE:
+    from dotenv import dotenv_values
+    _key = (dotenv_values(ROOT / ".env").get("ANTHROPIC_API_KEY") or "").strip()
+DATA_DIR = tempfile.mkdtemp(prefix="copilot-bench-")  # holds copies of your files; deleted at exit
+atexit.register(shutil.rmtree, DATA_DIR, ignore_errors=True)
+os.environ["COPILOT_DATA_DIR"] = DATA_DIR
 for k in ("DEEPGRAM_API_KEY", "ANTHROPIC_API_KEY", "OPENAI_API_KEY"):
     os.environ[k] = ""
+os.environ["ANTHROPIC_API_KEY"] = _key  # read from the environment only; never saved to settings.json
 sys.path.insert(0, str(ROOT))
 
 import httpx2  # noqa: E402
@@ -81,6 +92,7 @@ class Recorder:
     def __init__(self):
         self.now = 0.0
         self.calls: list[tuple[float, dict]] = []
+        self.stamps: dict[str, float] = {}  # answer id -> interview time
 
     def handler(self, request):
         body = json.loads(request.content)
@@ -109,12 +121,13 @@ def _sse(model: str, text: str) -> str:
     return "".join(f"event: {e}\ndata: {json.dumps(d)}\n\n" for e, d in ev)
 
 
-async def replay(transcript: Path, docs: list[Path]) -> Recorder:
+async def replay(transcript: Path, docs: list[Path], rec: Recorder | None = None) -> tuple[Recorder, Core, Session]:
     core = Core()
-    core.settings.update({"provider": "claude", "anthropic_api_key": "sk-bench"})
-    rec = Recorder()
-    core.llm._clients[("claude", "sk-bench")] = AsyncAnthropic(
-        api_key="sk-bench", max_retries=0, http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(rec.handler)))
+    rec = rec or Recorder()
+    if not LIVE:
+        core.settings.update({"provider": "claude", "anthropic_api_key": "sk-bench"})
+        core.llm._clients[("claude", "sk-bench")] = AsyncAnthropic(
+            api_key="sk-bench", max_retries=0, http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(rec.handler)))
     for p in docs:
         core.docs.add_file(p.name, p.read_bytes())
     session = Session(core)
@@ -131,15 +144,18 @@ async def replay(transcript: Path, docs: list[Path]) -> Recorder:
             session.aggregator.handle(result(ch, c.strip()))
             if ch == 0 and k % 2 == 1:  # long answers pause for 1 s+ now and then: Deepgram closes the turn
                 session.aggregator.handle({"type": "UtteranceEnd", "channel": [0, 2], "last_word_end": 0})
-            await _drain(core)
+            await _drain(core, rec)
         session.aggregator.handle({"type": "UtteranceEnd", "channel": [ch, 2], "last_word_end": 0})
-        await _drain(core)
-    return rec
+        await _drain(core, rec)
+    return rec, core, session
 
 
-async def _drain(core: Core) -> None:
+async def _drain(core: Core, rec: Recorder | None = None) -> None:
     while core.answerer._tasks:
         await asyncio.gather(*list(core.answerer._tasks))
+    if rec is not None:  # remember when in the interview each answer appeared
+        for aid in core.hub.state.answers:
+            rec.stamps.setdefault(aid, rec.now)
 
 
 # ---------------------------------------------------------------- Anthropic billing with prompt caching
@@ -212,12 +228,62 @@ def _selftest() -> None:
     assert bill([(0, {"model": "claude-sonnet-5-5", "system": small, "messages": [{"role": "user", "content": "q"}]})])["write"] == 0
 
 
+class _Usage(logging.Handler):
+    """Collects the per-call usage lines app/llm.py logs (live mode)."""
+
+    def __init__(self, rec: Recorder):
+        super().__init__()
+        self.rec, self.rows = rec, []
+
+    def emit(self, record: logging.LogRecord) -> None:
+        self.rows.append((self.rec.now, *record.args))
+
+
+def live(transcript: Path, docs: list[Path]) -> None:
+    if not _key:
+        sys.exit("No ANTHROPIC_API_KEY in .env")
+    sys.stdout.reconfigure(encoding="utf-8")
+    rec = Recorder()
+    usage = _Usage(rec)
+    llm_log = logging.getLogger("llm")
+    llm_log.setLevel(logging.INFO)
+    llm_log.addHandler(usage)
+    rec, core, session = asyncio.run(replay(transcript, docs, rec))
+    mmss = lambda t: f"{int(t) // 60:02d}:{int(t) % 60:02d}"
+    for a in core.hub.state.answers.values():
+        print(f"\n[{mmss(rec.stamps.get(a['id'], 0))}] Q: {a['question']}  (first words after {a.get('latency_ms')} ms)")
+        print(a.get("text") or f"ERROR: {a.get('error')}")
+    usd, sums = 0.0, {}
+    for now, kind, model, inp, read, write, out in usage.rows:
+        p_in, p_out = PRICES.get(model, (0.0, 0.0))
+        usd += (p_in * (inp + 0.1 * read + 1.25 * write) + p_out * out) / 1e6
+        s = sums.setdefault(kind, [0, 0, 0, 0, 0])
+        for i, v in enumerate((1, inp, read, write, out)):
+            s[i] += v
+    print("\n--- real usage (tokens) ---")
+    for kind, (n, inp, read, write, out) in sums.items():
+        print(f"{kind}: {n} calls, uncached input {inp}, cache read {read}, cache write {write}, output {out}")
+    first_hit = next((i for i, r in enumerate(usage.rows) if r[1] == "answer" and r[4] > 0), None)
+    print(f"cache hits on {sum(1 for r in usage.rows if r[1] == 'answer' and r[4] > 0)} of "
+          f"{sum(1 for r in usage.rows if r[1] == 'answer')} answer calls (first hit: call #{first_hit})")
+    print(f"actual cost: ${usd:.4f}")
+    saved = session._save()
+    if saved:
+        out_dir = ROOT / "data" / "sessions"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        dest = out_dir / ("replay_" + Path(saved).name)
+        shutil.copy(saved, dest)
+        print(f"saved: {dest}")
+
+
 def main() -> None:
     _selftest()
-    args = [Path(a) for a in sys.argv[1:]]
+    args = [Path(a) for a in sys.argv[1:] if a != "--live"]
     transcript = args[0] if args else DEFAULT_TRANSCRIPT
     docs = args[1:] or DEFAULT_DOCS
-    rec = asyncio.run(replay(transcript, docs))
+    if LIVE:
+        return live(transcript, docs)
+    rec, _, _ = asyncio.run(replay(transcript, docs))
     t = bill(rec.calls)
     print(f"answers={t['answers']} checks={t['checks']} input: uncached={t['uncached']} read={t['read']} "
           f"write={t['write']} output={t['output']} -> ${t['usd']:.4f}", file=sys.stderr)

@@ -2,10 +2,13 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
-from typing import AsyncIterator, Sequence
+from typing import AsyncIterator, Callable, Sequence
 
 from .config import Settings
+
+log = logging.getLogger("llm")
 
 
 class LLMError(RuntimeError):
@@ -73,8 +76,11 @@ class LLM:
                     messages=[{"role": "user", "content": [*content, {"type": "text", "text": user}] if content else user}],
                     **self._claude_extra(),
                 ) as s:
-                    async for text in s.text_stream:
-                        yield text
+                    try:
+                        async for text in s.text_stream:
+                            yield text
+                    finally:  # also when the caller stops early (NO_ANSWER): the input was billed
+                        _log_usage("answer", model, lambda: s.current_message_snapshot.usage)
             else:
                 # OpenAI caches the longest repeated prefix on its own; a stable history keeps it long.
                 user = "".join(history) + user
@@ -121,6 +127,7 @@ class LLM:
                     messages=[{"role": "user", "content": user}],
                     **self._claude_extra(),
                 )
+                _log_usage("check", model, lambda: resp.usage)
                 return "".join(getattr(b, "text", "") for b in resp.content)
             out = []
             async for t in self._openai_stream(client, model, system, user, max_tokens):
@@ -130,6 +137,16 @@ class LLM:
             raise
         except Exception as e:
             raise LLMError(_friendly(e)) from e
+
+
+def _log_usage(kind: str, model: str, usage: Callable[[], object]) -> None:
+    """One console line per Claude call; cache_read > 0 from the second answer on means caching works."""
+    try:
+        u = usage()
+    except Exception:  # the request failed before any usage came back
+        return
+    log.info("%s %s: input=%s cache_read=%s cache_write=%s output=%s", kind, model, u.input_tokens,
+             u.cache_read_input_tokens or 0, u.cache_creation_input_tokens or 0, u.output_tokens)
 
 
 def parse_json_object(text: str) -> dict:
