@@ -174,10 +174,29 @@ details summary { cursor: pointer; color: var(--ink-2); margin-bottom: 8px; }
 .phone { text-align: center; }
 .phone img { width: min(300px, 70vw); height: auto; border-radius: 8px; }
 
+/* Phone: an answers-only teleprompter. A black background and dim amber text give off as little light as
+   possible, so the screen doesn't show up as a reflection in glasses on camera. */
+#followBtn { display: none; }
 @media (max-width: 760px) {
-  main { grid-template-columns: 1fr; grid-template-rows: 40% 60%; }
-  .answers-col { border-left: 0; border-top: 1px solid var(--line); }
-  .meter i { width: 40px; }
+  :root {
+    --ground: #000; --surface: #000; --surface-2: #000; --line: #1F1B16;
+    --ink: #9C7A4E; --ink-2: #7D6747; --ink-3: #5E4E37; --them: #8A7350; --them-tint: #000; --me: #7D6747; --me-tint: #000;
+    --mark: transparent; --mark-ink: #9C7A4E; --rec: #A0503F; --focus: #8A7350;
+    --warn-bg: #000; --warn-ink: #B08850; --err-bg: #000; --err-ink: #B06A55;
+    --read: #4A3D2C; --now: #C99A5B;
+    color-scheme: dark;
+  }
+  main { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+  main > .col:first-child, .meters, .timer, #recBtn, #filesBtn, #settingsBtn, #phoneBtn, #askInput, .ask button[type="submit"] { display: none; }
+  #followBtn { display: inline-flex; }
+  #followBtn[aria-pressed="false"] { color: var(--ink-3); text-decoration: line-through; }
+  .answers-col { border: 0; }
+  .answers { padding: 0 16px 40vh; }  /* room for the last lines to scroll up to the reading line */
+  .answer.latest .body { font-size: 1.5em; line-height: 1.6; }
+  .answer .w.read { color: var(--read); }
+  .answer .w.now { color: var(--now); }
+  .primary { background: none; border: 1px solid var(--line); color: var(--ink); }
+  .toast { background: #000; color: var(--ink); border: 1px solid var(--line); box-shadow: none; }
 }
 </style>
 </head>
@@ -198,6 +217,7 @@ details summary { cursor: pointer; color: var(--ink-2); margin-bottom: 8px; }
     <button class="ghost" type="button" id="filesBtn">Files<span class="count" id="docCount">0</span></button>
     <button class="ghost" type="button" id="settingsBtn">Settings</button>
     <button class="ghost" type="button" id="phoneBtn">Phone</button>
+    <button class="ghost" type="button" id="followBtn" aria-pressed="true" title="Scroll the answer along as you read it out">Follow</button>
   </div>
 </header>
 
