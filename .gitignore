@@ -6,3 +6,4 @@ data/
 docs/
 .devserver/
 node_modules/
+videos/*/renders/

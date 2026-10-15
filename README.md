@@ -1,11 +1,18 @@
 # Interview Copilot
 
-Press **Record** on your computer (Windows, Mac or Linux, Intel/AMD or ARM) during a video call. The app:
+Live answers to interview questions while you're on the call. Interview Copilot listens to your video call on Windows, Mac or Linux (Intel/AMD or ARM), spots when the interviewer asks a question, and streams an answer built from your own CV and the job description, about two seconds after they stop talking.
 
-1. Captures two audio sources at once: your **microphone** and your **computer's sound output** (Zoom, Meet, Teams…).
-2. Transcribes both live with Deepgram, labeling every line **Me** or **Interviewer**.
-3. Watches the interviewer's turns and decides when a question was asked.
-4. Streams an answer from **Claude** or **ChatGPT** (switchable), built from the files you uploaded: CV, job description, notes, course material.
+[![Watch the 50-second demo](media/demo-poster.jpg)](media/demo.mp4)
+
+<p align="center"><a href="media/demo.mp4"><b>▶ Watch the 50-second demo</b></a></p>
+
+## Features
+
+- **Two audio sources at once.** Your **microphone** and your **computer's sound output** (Zoom, Meet, Teams…) are captured together.
+- **Live transcript.** Deepgram transcribes both as you talk, labeling every line **Me** or **Interviewer**.
+- **Question detection.** The app watches the interviewer's turns and decides when a question was asked.
+- **Answers from your files.** **Claude** or **ChatGPT** (switchable) streams an answer built from the files you uploaded: CV, job description, notes, course material.
+- **Phone teleprompter.** Scan a QR code to read answers on your phone. The text follows your voice as you read.
 
 ```
 Mic ──────────┐                         ┌─ Live transcript (Me / Interviewer)
@@ -18,22 +25,19 @@ PC speakers ──┘  (L=Me,     (per-channel)└─ Interviewer turn ends ─�
 
 Your mic and the PC's sound are recorded as two separate channels, and Deepgram transcribes each channel on its own. So "who said this" comes from *where the audio came from*, not from guessing voices. That makes it reliable from the first word, with no voice training.
 
-Wear **headphones**. If you use laptop speakers, your mic also hears the interviewer. The app detects and drops those echo lines, but headphones avoid the problem entirely.
+> [!TIP]
+> Wear **headphones**. If you use laptop speakers, your mic also hears the interviewer. The app detects and drops those echo lines, but headphones avoid the problem entirely.
 
----
-
-## Setup
-
-You need:
+## Requirements
 
 - **Windows 10 or 11, macOS or Linux**, on Intel/AMD or ARM
 - **Python 3.12** from python.org (3.10 or newer works). On Windows, tick **Add python.exe to PATH** during install. On Linux, your distribution's `python3` and `python3-venv` packages are fine.
 - A **Deepgram** API key for transcription: https://console.deepgram.com
 - An **Anthropic** key (https://console.anthropic.com) and/or an **OpenAI** key (https://platform.openai.com)
 
-Then:
+## Getting started
 
-1. Unzip this folder anywhere, for example `Documents/interview-copilot`.
+1. Clone this repo, or unzip it anywhere, for example `Documents\interview-copilot`.
 2. Start it:
    - **Windows:** double-click **`run.bat`**.
    - **Mac:** double-click **`run.command`**. The first time, macOS may say it can't check the file: open System Settings > Privacy & Security, click **Open Anyway**, then double-click it again. When you first press Record, allow Terminal to use the microphone.
@@ -54,7 +58,7 @@ Windows and Linux can record what the computer plays directly. A Mac can't, so i
 3. In System Settings > Sound, pick that **Multi-Output Device** as the output. You still hear the call, and BlackHole gets a copy.
 4. The app picks BlackHole for **Interviewer** by itself; you can check it in Settings > Call audio.
 
-## Using it
+## Usage
 
 - Answers appear on the right as soon as a question is detected. The newest is large, with its key line highlighted.
 - **Answer now** (or press **A**) forces an answer to the interviewer's latest turn, useful if a question was missed.
@@ -64,13 +68,16 @@ Windows and Linux can record what the computer plays directly. A Mac can't, so i
 
 ### On your phone
 
-Click **Phone** and scan the QR code with your phone's camera. The phone shows the same live transcript and answers, and its buttons work too (Answer now, Ask, Record). Your phone must be on the same Wi-Fi as the computer. The first time you click **Phone**, Windows asks for permission once ("Network Command Shell"): click **Yes**. That adds one firewall rule letting devices on your own Wi-Fi reach the app, on any network type, so there's no need to change your Wi-Fi to Private. A Mac may ask whether Python can accept incoming connections: click **Allow**. On Linux with the `ufw` firewall turned on, run `sudo ufw allow 8765/tcp`. If the phone still can't connect, the Wi-Fi may stop devices from reaching each other, which is common on guest networks.
+Click **Phone** and scan the QR code with your phone's camera. The phone shows the same live transcript and answers, and its buttons work too (Answer now, Ask, Record). Your phone must be on the same Wi-Fi as the computer.
 
-Phone browsers try a secure `https://` link first. This app uses plain `http` on your own network, so the browser falls back to it (the app's window notes this once). If your browser is set to always require secure connections, it shows a warning page: tap **Continue**. Because the link is plain `http`, someone else on a public Wi-Fi could in principle see what's sent between the computer and your phone, so use phone access on your own Wi-Fi.
+The first time you click **Phone**, Windows asks for permission once ("Network Command Shell"): click **Yes**. That adds one firewall rule letting devices on your own Wi-Fi reach the app, on any network type, so there's no need to change your Wi-Fi to Private. A Mac may ask whether Python can accept incoming connections: click **Allow**. On Linux with the `ufw` firewall turned on, run `sudo ufw allow 8765/tcp`. If the phone still can't connect, the Wi-Fi may stop devices from reaching each other, which is common on guest networks.
 
 On the phone the app becomes an answers-only teleprompter: a black screen with dim amber text, so it gives off as little light as possible (it won't show up as a bright reflection in glasses; turning your phone's brightness down helps too). While you read an answer out loud, it follows your voice from your microphone transcript: words you've read dim, the next few light up, and the answer scrolls to keep your place a third of the way down. It copes with misheard words and skipped lines, and if you go off-script it keeps moving at your speaking pace, then holds still when you stop. Touch the answer to scroll yourself (following pauses for a few seconds), or tap **Follow** to turn it off and on. **Record** works from the phone too: it starts and stops the recording on the computer.
 
 Only this computer and devices that scanned the QR code can open the app; anyone else on the Wi-Fi gets "access denied". To lock out phones you used before, delete `data\phone_key` and restart.
+
+> [!NOTE]
+> Phone browsers try a secure `https://` link first. This app uses plain `http` on your own network, so the browser falls back to it (the app's window notes this once). If your browser is set to always require secure connections, it shows a warning page: tap **Continue**. Because the link is plain `http`, someone else on a public Wi-Fi could in principle see what's sent between the computer and your phone, so use phone access on your own Wi-Fi.
 
 ### Settings worth knowing
 
@@ -93,7 +100,7 @@ Only this computer and devices that scanned the QR code can open the app; anyone
 - **"Model not found":** the model name in Settings → Models no longer exists; change it to a current one from your provider's model list.
 - **Setup failed on PyAudioWPatch:** install Python 3.12 64-bit, delete the `.venv` folder, and run `run.bat` again.
 
-## How it works (code map)
+## How it works
 
 | File | Role |
 |---|---|
@@ -104,10 +111,26 @@ Only this computer and devices that scanned the QR code can open the app; anyone
 | `app/llm.py` | Claude / OpenAI streaming. Your files and the finished part of the transcript are prompt-cached, so repeat answers start faster and cost less |
 | `app/core.py` | Ties it together: session, answer agent, events to the browser |
 | `app/server.py` + `static/index.html` | Local web app |
+| `static/follow.js` | The phone teleprompter's voice follower |
 
 Latency you can expect: words appear on screen within about half a second; an answer starts streaming roughly 1.5–3 seconds after the interviewer finishes. The time to first words is shown on every answer.
 
-Run the tests (any OS, no keys needed): `.venv\Scripts\python -m pip install pytest httpx` then `.venv\Scripts\python -m pytest -q` (on Mac/Linux: `.venv/bin/python`).
+## Development
+
+Run the tests (any OS, no keys needed; on Mac/Linux use `.venv/bin/python`):
+
+```bat
+.venv\Scripts\python -m pip install pytest httpx
+.venv\Scripts\python -m pytest -q
+node --test
+```
+
+Browser checks for the phone view (Playwright; run while the app is running, after `npm install` and `npx playwright install chromium`):
+
+```bat
+node tests\phone.cjs
+node tests\teleprompter.cjs
+```
 
 Estimate what an interview costs (no keys needed): `.venv\Scripts\python tests\bench_tokens.py transcript.txt cv.pdf job.pdf` replays an Otter-style transcript through the app with a mocked Claude API and prints the simulated cost in thousandths of a dollar. Set which speakers are you and the interviewer in `ME` / `INTERVIEWER` at the top of that file.
 
@@ -115,4 +138,7 @@ Check how human the answers sound: `.venv\Scripts\python tests\bench_human.py --
 
 ## Privacy and responsible use
 
-Audio goes to Deepgram and text goes to the AI provider you choose; nothing else leaves your PC. Your keys are stored in `data\settings.json` and `.env`, so don't share those files. Recording laws in many places require the other person's consent, and many employers and schools don't allow AI help during interviews or exams, so check before using it in a real one.
+Audio goes to Deepgram and text goes to the AI provider you choose; nothing else leaves your PC. Your keys are stored in `data\settings.json` and `.env`, so don't share those files.
+
+> [!WARNING]
+> Recording laws in many places require the other person's consent, and many employers and schools don't allow AI help during interviews or exams, so check before using it in a real one.

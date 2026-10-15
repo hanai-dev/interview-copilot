@@ -1,6 +1,6 @@
 ﻿// Voice follower golden cases: real answers and what was actually said while reading them
 // (Deepgram transcripts from practice sessions, recognition mistakes included).
-// Run: node --test tests/
+// Run: node --test
 const test = require("node:test");
 const assert = require("node:assert");
 const { Follower, Pace, norm } = require("../static/follow.js");
