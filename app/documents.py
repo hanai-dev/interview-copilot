@@ -19,12 +19,9 @@ def extract_text(path: Path) -> str:
         reader = PdfReader(str(path))
         pages = []
         for i, page in enumerate(reader.pages, 1):
-            # Plain mode often puts every word on its own line (2x the tokens on every answer);
-            # layout mode keeps real lines, minus the alignment padding.
-            try:
-                text = page.extract_text(extraction_mode="layout") or ""
-            except Exception:
-                text = page.extract_text() or ""
+            # Many PDFs come out as "word\n \nword": every word on its own line, 2x the tokens on
+            # every answer. Drop that padding only; layout mode would lose some text (forms, rotated).
+            text = re.sub(r"\n[ \t]+\n", " ", page.extract_text() or "")
             lines = [re.sub(r"[ \t]+", " ", line).strip() for line in text.splitlines()]
             text = re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
             if text:
