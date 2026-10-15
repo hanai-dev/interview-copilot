@@ -329,7 +329,7 @@ details summary { cursor: pointer; color: var(--ink-2); margin-bottom: 8px; }
       <fieldset>
         <legend>Audio</legend>
         <label class="field"><span>Your microphone (Me)</span><select name="mic_device"></select></label>
-        <label class="field"><span>Call audio output (Interviewer)</span><select name="speaker_device"></select><small>Pick the headphones or speakers your call plays through.</small></label>
+        <label class="field"><span>Call audio output (Interviewer)</span><select name="speaker_device"></select><small>Pick the headphones or speakers your call plays through. On a Mac, pick BlackHole.</small></label>
         <p class="note" id="devNote" hidden></p>
         <label class="field"><span>Language</span><input name="language"><small>en, en-US, es, fr, de, hi, ja… or “multi” for mixed languages</small></label>
         <label class="field"><span>Key terms</span><input name="keyterms" placeholder="Kubernetes, Ateneo, PostgreSQL"><small>Names and jargon to help transcription, comma-separated</small></label>
@@ -657,10 +657,10 @@ async function openSettings() {
   mic.innerHTML = spk.innerHTML = `<option value="">Loading…</option>`;
   try {
     const d = await api("/api/devices");
-    const opts = (list, sel) => `<option value="">Windows default</option>` + list.map(x => `<option value="${x.index}" ${String(sel) === String(x.index) ? "selected" : ""}>${esc(x.name)}${x.default ? " (default)" : ""}</option>`).join("");
+    const opts = (list, sel) => `<option value="">System default</option>` + list.map(x => `<option value="${x.index}" ${String(sel) === String(x.index) ? "selected" : ""}>${esc(x.name)}${x.default ? " (default)" : ""}</option>`).join("");
     mic.innerHTML = opts(d.mics, s.mic_device); spk.innerHTML = opts(d.speakers, s.speaker_device);
     $("#devNote").hidden = d.available; $("#devNote").textContent = d.available ? "" : d.error;
-  } catch (e) { mic.innerHTML = spk.innerHTML = `<option value="">Windows default</option>`; }
+  } catch (e) { mic.innerHTML = spk.innerHTML = `<option value="">System default</option>`; }
 }
 $("#settingsBtn").onclick = openSettings;
 $("#settingsForm").onsubmit = async e => {

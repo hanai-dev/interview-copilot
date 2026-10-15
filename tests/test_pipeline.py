@@ -219,6 +219,49 @@ def _install_fake_pyaudio(monkeypatch, speaker_silent=False):
     monkeypatch.setitem(sys.modules, "pyaudiowpatch", mod)
 
 
+class _FakeMic:  # a soundcard input: a mic, a speaker loopback/monitor, or a Mac virtual device
+    def __init__(self, id, name, loop, freq, amp):
+        self.id, self.name, self.isloopback, self.freq, self.amp = id, name, loop, freq, amp
+
+    def recorder(self, samplerate, channels=None, blocksize=None):
+        mic = self
+
+        class Rec:
+            i = 0
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                pass
+
+            def record(self, numframes):
+                time.sleep(numframes / samplerate)
+                tt = (np.arange(numframes) + self.i) / samplerate
+                self.i += numframes
+                mono = (np.sin(2 * np.pi * mic.freq * tt) * mic.amp).astype(np.float32)
+                return np.repeat(mono[:, None], 2, axis=1)  # frames x channels, like soundcard
+        return Rec()
+
+
+def _install_fake_soundcard(monkeypatch, mac=False, blackhole=True, speaker_silent=False):
+    spk_amp = 0.0 if speaker_silent else 0.5
+    if mac:  # no loopbacks on a Mac: the call comes in through BlackHole
+        out = "MacBook Pro Speakers"
+        devs = [_FakeMic("51", "MacBook Pro Microphone", False, 300, 0.5)]
+        devs += [_FakeMic("60", "BlackHole 2ch", False, 500, spk_amp)] if blackhole else []
+    else:  # Linux PulseAudio/PipeWire
+        out = "Headphones"
+        devs = [_FakeMic("alsa_input.usb", "USB Mic", False, 300, 0.5),
+                _FakeMic("alsa_output.hp.monitor", "Monitor of Headphones", True, 500, spk_amp)]
+    mod = types.SimpleNamespace(
+        all_microphones=lambda include_loopback=False: [d for d in devs if include_loopback or not d.isloopback],
+        default_microphone=lambda: devs[0],
+        default_speaker=lambda: types.SimpleNamespace(name=out))
+    monkeypatch.setitem(sys.modules, "pyaudiowpatch", None)  # not installed off Windows x64
+    monkeypatch.setitem(sys.modules, "soundcard", mod)
+
+
 def test_list_devices(monkeypatch):
     _install_fake_pyaudio(monkeypatch)
     from app.audio_capture import list_devices
@@ -227,9 +270,67 @@ def test_list_devices(monkeypatch):
     assert d["speakers"] == [{"index": 2, "name": "Headphones (USB)", "default": True}]
 
 
+def test_list_devices_linux_and_mac(monkeypatch):
+    from app.audio_capture import list_devices
+    _install_fake_soundcard(monkeypatch)
+    d = list_devices()
+    assert d["mics"] == [{"index": 0, "name": "USB Mic", "default": True}]
+    assert d["speakers"] == [{"index": 1, "name": "Monitor of Headphones", "default": True}]
+    _install_fake_soundcard(monkeypatch, mac=True)
+    d = list_devices()
+    assert [m["name"] for m in d["mics"]] == ["MacBook Pro Microphone", "BlackHole 2ch"]
+    assert [s["name"] for s in d["speakers"] if s["default"]] == ["BlackHole 2ch"]  # never the Mac's own mic
+    sc = sys.modules["soundcard"]
+    monkeypatch.setattr(sc, "default_microphone", lambda: sc.all_microphones()[1])  # BlackHole set as system input
+    assert [m["name"] for m in list_devices()["mics"] if m["default"]] == ["MacBook Pro Microphone"]
+
+
+def test_mac_without_blackhole_says_how_to_fix(monkeypatch):
+    from app import audio_capture
+    _install_fake_soundcard(monkeypatch, mac=True, blackhole=False)
+    monkeypatch.setattr(audio_capture.sys, "platform", "darwin")
+    with pytest.raises(audio_capture.AudioUnavailable, match="BlackHole"):
+        audio_capture.DualCapture(lambda b: None).start()
+
+
+def test_windows_arm_mic_soundcard_cant_read_falls_back_to_portaudio(monkeypatch):
+    from app import audio_capture
+    _install_fake_soundcard(monkeypatch)
+    mic = sys.modules["soundcard"].all_microphones()[0]
+    monkeypatch.setattr(mic, "recorder", lambda **kw: (_ for _ in ()).throw(AssertionError()), raising=False)
+    monkeypatch.setattr(audio_capture.sys, "platform", "win32")
+    opened = []
+
+    class Stream:
+        def __init__(self, **kw):
+            opened.append(kw)
+
+        def start(self):
+            opened[-1]["callback"](np.full((320, 1), 0.5, np.float32), 320, None, None)
+
+        stop = close = start
+    monkeypatch.setitem(sys.modules, "sounddevice", types.SimpleNamespace(
+        _terminate=lambda: None, _initialize=lambda: None,
+        query_hostapis=lambda: [{"name": "MME"}, {"name": "Windows WASAPI"}],
+        query_devices=lambda: [{"name": "USB Mic", "hostapi": 0, "max_input_channels": 1},
+                               {"name": "USB Mic", "hostapi": 1, "max_input_channels": 1}],
+        InputStream=Stream, WasapiSettings=lambda **kw: kw))
+    cap = audio_capture.DualCapture(lambda b: None)
+    cap.start()
+    try:
+        assert opened[0]["device"] == 1 and opened[0]["samplerate"] == 16000  # the WASAPI one, at 16 kHz
+        assert cap._mic.take(320).max() == pytest.approx(0.5)
+    finally:
+        cap.stop()
+
+
+@pytest.mark.parametrize("backend", ["pyaudio", "soundcard"])
 @pytest.mark.parametrize("speaker_silent", [False, True])
-def test_dual_capture_produces_stereo_16k(monkeypatch, tmp_path, speaker_silent):
-    _install_fake_pyaudio(monkeypatch, speaker_silent)
+def test_dual_capture_produces_stereo_16k(monkeypatch, tmp_path, speaker_silent, backend):
+    if backend == "pyaudio":
+        _install_fake_pyaudio(monkeypatch, speaker_silent)
+    else:
+        _install_fake_soundcard(monkeypatch, speaker_silent=speaker_silent)
     from app.audio_capture import DualCapture
     chunks, levels = [], []
     cap = DualCapture(chunks.append, lambda a, b: levels.append((a, b)), wav_path=tmp_path / "a.wav")

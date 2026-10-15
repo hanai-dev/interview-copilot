@@ -1,4 +1,8 @@
-"""Windows audio capture: your microphone + whatever the PC is playing (WASAPI loopback).
+"""Audio capture: your microphone + whatever the computer is playing.
+
+Windows on x64 uses PyAudioWPatch (WASAPI loopback). Everywhere else (macOS, Linux, Windows on ARM)
+uses SoundCard: loopback on Windows, the speakers' "monitor" on Linux (PulseAudio/PipeWire). A Mac
+can't record its own output, so there the call audio comes from a virtual device such as BlackHole.
 
 Output is a single stereo 16 kHz 16-bit PCM stream:
     left  channel (0) = microphone      -> "Me"
@@ -10,6 +14,7 @@ Deepgram transcribes each channel independently, so we always know who said what
 from __future__ import annotations
 
 import math
+import sys
 import threading
 import time
 import wave
@@ -23,27 +28,98 @@ TICK_S = 0.02          # mixer wakes every 20 ms
 JITTER_DELAY_S = 0.10  # hold 100 ms of audio so uneven device callbacks don't cause gaps
 MAX_BACKLOG_S = 0.50   # if a device runs ahead by more than this, drop the excess (keeps latency low)
 LEVEL_EVERY_S = 0.1
+SC_BLOCK = TARGET_RATE // 50  # SoundCard reads 20 ms at a time
+VIRTUAL = ("blackhole", "loopback", "soundflower")  # Mac virtual devices that carry the call audio
 
 
 class AudioUnavailable(RuntimeError):
     pass
 
 
-def _pyaudio():
+def _backend():
+    """(pyaudiowpatch, None) where it installs (Windows x64, the most tested path), else (None, soundcard)."""
     try:
         import pyaudiowpatch as pyaudio  # type: ignore
-    except ImportError as e:
+        return pyaudio, None
+    except ImportError:
+        pass
+    try:
+        import soundcard  # type: ignore
+    except Exception as e:  # Linux without PulseAudio/PipeWire fails here
         raise AudioUnavailable(
-            "Audio capture needs Windows and the PyAudioWPatch package "
-            "(it installs automatically from requirements.txt on Windows). "
-            "On other systems you can still try Demo mode."
+            "Audio capture needs the packages in requirements.txt (run.bat or run.command installs them) and, "
+            f"on Linux, PulseAudio or PipeWire. You can still try Demo mode. ({str(e) or type(e).__name__})"
         ) from e
-    return pyaudio
+    return None, soundcard
 
 
 def list_devices() -> dict:
+    pyaudio, sc = _backend()
+    return _sc_list(sc) if sc else _pa_list(pyaudio)
+
+
+def _sc_inputs(sc):
+    """Every input, numbered by position. Loopbacks are the speakers; a Mac has none, so any input can be the call."""
+    devs = sc.all_microphones(include_loopback=True)
+    mics = [i for i, d in enumerate(devs) if not d.isloopback]
+    return devs, mics, [i for i, d in enumerate(devs) if d.isloopback] or mics
+
+
+def _sc_defaults(sc, devs, mics, spks):
+    """(mic, call audio) positions: the system mic, and the loopback of the system output (or BlackHole on a Mac)."""
+    def find(cands, ok):
+        return next((i for i in cands if ok(devs[i])), None)
+
+    try:
+        mic_id = sc.default_microphone().id
+    except Exception:
+        mic_id = None
+    try:
+        out = sc.default_speaker().name
+    except Exception:
+        out = ""
+    virtual = lambda d: any(v in d.name.lower() for v in VIRTUAL)
+    mic = find(mics, lambda d: d.id == mic_id and not virtual(d))  # BlackHole as system input is still the call
+    if mic is None:
+        mic = find(mics, lambda d: not virtual(d))
+    spk = find(spks, lambda d: d.isloopback and bool(out) and out in d.name)  # Linux: "Monitor of <out>"
+    if spk is None:
+        spk = find(spks, lambda d: d.isloopback or virtual(d))
+    return mic, spk
+
+
+def _sc_list(sc) -> dict:
+    devs, mics, spks = _sc_inputs(sc)
+    dmic, dspk = _sc_defaults(sc, devs, mics, spks)
+    row = lambda i, default: {"index": i, "name": devs[i].name, "default": i == default}
+    return {"mics": [row(i, dmic) for i in mics], "speakers": [row(i, dspk) for i in spks]}
+
+
+def _no_call_audio() -> str:
+    if sys.platform == "darwin":
+        return ("A Mac can't record what it plays by itself. Install the free BlackHole 2ch driver, make a "
+                "Multi-Output Device (your headphones + BlackHole) in Audio MIDI Setup and use it as your "
+                "sound output, then pick BlackHole under Settings > Call audio.")
+    return "Couldn't find a loopback (monitor) of your speakers/headphones."
+
+
+def _sd_input(name: str, source: "_Source"):
+    """The same Windows mic through PortAudio (sounddevice), converted to 16 kHz mono by WASAPI."""
+    import sounddevice as sd  # type: ignore
+    sd._terminate()  # sounddevice lists devices once per process; refresh so a headset plugged in later is found
+    sd._initialize()
+    wasapi = next(i for i, h in enumerate(sd.query_hostapis()) if "WASAPI" in h["name"])
+    index = next(i for i, d in enumerate(sd.query_devices())
+                 if d["hostapi"] == wasapi and d["max_input_channels"] > 0 and d["name"] == name)
+    stream = sd.InputStream(device=index, samplerate=TARGET_RATE, channels=1, dtype="float32", blocksize=SC_BLOCK,
+                            extra_settings=sd.WasapiSettings(auto_convert=True),
+                            callback=lambda data, frames, t, status: source.push_mono(data[:, 0].copy()))
+    stream.start()
+    return stream
+
+
+def _pa_list(pyaudio) -> dict:
     """Microphones and speaker outputs (as loopback inputs) on the WASAPI host API."""
-    pyaudio = _pyaudio()
     p = pyaudio.PyAudio()
     try:
         wasapi = p.get_host_api_info_by_type(pyaudio.paWASAPI)
@@ -101,6 +177,9 @@ class _Source:
         if self.in_channels > 1:
             usable = len(a) - len(a) % self.in_channels
             a = a[:usable].reshape(-1, self.in_channels).mean(axis=1)
+        self.push_mono(a)
+
+    def push_mono(self, a: np.ndarray) -> None:
         y = np.asarray(self._resample(a), dtype=np.float32)
         with self._lock:
             self._buf = np.concatenate([self._buf, y])
@@ -146,6 +225,7 @@ class DualCapture:
         self._thread: Optional[threading.Thread] = None
         self._p = None
         self._streams = []
+        self._readers = []
         self._wav = None
         self.mic_name = ""
         self.speaker_name = ""
@@ -195,19 +275,72 @@ class DualCapture:
             stream_callback=callback,
         )
 
+    def _start_pyaudio(self, pyaudio) -> None:
+        self._p = pyaudio.PyAudio()
+        mic, spk = self._resolve(pyaudio)
+        self.mic_name = mic["name"]
+        self.speaker_name = spk["name"].replace(" [Loopback]", "")
+        self._mic = _Source(int(mic["defaultSampleRate"]), int(mic["maxInputChannels"]))
+        self._spk = _Source(int(spk["defaultSampleRate"]), int(spk["maxInputChannels"]))
+        self._streams = [self._open(pyaudio, mic, self._mic), self._open(pyaudio, spk, self._spk)]
+        for s in self._streams:
+            s.start_stream()
+
+    def _start_soundcard(self, sc) -> None:
+        devs, mics, spks = _sc_inputs(sc)
+        dmic, dspk = _sc_defaults(sc, devs, mics, spks)
+        pick = lambda i, default: i if i is not None and 0 <= i < len(devs) else default
+        mic_i, spk_i = pick(self.mic_index, dmic), pick(self.speaker_index, dspk)
+        if mic_i is None:
+            raise AudioUnavailable("Couldn't find a microphone.")
+        if spk_i is None:
+            raise AudioUnavailable(_no_call_audio())
+        mic, spk = devs[mic_i], devs[spk_i]
+        self.mic_name, self.speaker_name = mic.name, spk.name
+        self._mic, self._spk = _Source(TARGET_RATE, 1), _Source(TARGET_RATE, 1)  # the OS resamples to 16 kHz
+        for device, source in ((mic, self._mic), (spk, self._spk)):
+            try:
+                self._readers.append(self._record(device, source))
+            except AudioUnavailable as e:
+                if device.isloopback or sys.platform != "win32" or e.__cause__ is None:  # not if it's just slow
+                    raise
+                try:  # SoundCard can't read some Windows mics (16-bit headsets such as EarPods); PortAudio can
+                    self._streams.append(_sd_input(device.name, source))
+                except Exception:
+                    raise e from None
+
+    def _record(self, device, source: _Source) -> threading.Thread:
+        """One thread per device: SoundCard's record() blocks until a block is in."""
+        ready, failed, stop = threading.Event(), [], self._stop  # this session's stop, even if it opens late
+
+        def run() -> None:
+            try:
+                with device.recorder(samplerate=TARGET_RATE, blocksize=SC_BLOCK) as rec:
+                    ready.set()
+                    while not stop.is_set():
+                        source.push_mono(rec.record(numframes=SC_BLOCK).mean(axis=1))
+            except Exception as e:  # couldn't open, or the device went away mid-call (then it's silence)
+                failed.append(e)
+                ready.set()
+
+        t = threading.Thread(target=run, name=f"audio-{device.name}", daemon=True)
+        t.start()
+        if not ready.wait(5):
+            raise AudioUnavailable(f"{device.name} didn't respond. Try another device in Settings.")
+        if failed:
+            e = failed[0]
+            raise AudioUnavailable(f"Couldn't open {device.name}: {str(e) or type(e).__name__}") from e
+        return t
+
     # -- lifecycle -----------------------------------------------------
     def start(self) -> None:
-        pyaudio = _pyaudio()
-        self._p = pyaudio.PyAudio()
+        pyaudio, sc = _backend()
+        self._stop = threading.Event()  # fresh per session, so a reader left over from the last one stays stopped
         try:
-            mic, spk = self._resolve(pyaudio)
-            self.mic_name = mic["name"]
-            self.speaker_name = spk["name"].replace(" [Loopback]", "")
-            self._mic = _Source(int(mic["defaultSampleRate"]), int(mic["maxInputChannels"]))
-            self._spk = _Source(int(spk["defaultSampleRate"]), int(spk["maxInputChannels"]))
-            self._streams = [self._open(pyaudio, mic, self._mic), self._open(pyaudio, spk, self._spk)]
-            for s in self._streams:
-                s.start_stream()
+            if sc:
+                self._start_soundcard(sc)
+            else:
+                self._start_pyaudio(pyaudio)
         except AudioUnavailable:
             self.stop()
             raise
@@ -222,7 +355,6 @@ class DualCapture:
             self._wav.setsampwidth(2)
             self._wav.setframerate(TARGET_RATE)
 
-        self._stop.clear()
         self._thread = threading.Thread(target=self._mix_loop, name="audio-mixer", daemon=True)
         self._thread.start()
 
@@ -261,13 +393,16 @@ class DualCapture:
         self._stop.set()
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=1.0)
-        for s in self._streams:
+        for s in self._streams:  # PyAudio streams, or sounddevice ones on Windows on ARM
             try:
-                s.stop_stream()
+                (getattr(s, "stop_stream", None) or s.stop)()
                 s.close()
             except Exception:
                 pass
         self._streams = []
+        for t in self._readers:
+            t.join(timeout=1.0)
+        self._readers = []
         if self._p:
             try:
                 self._p.terminate()
