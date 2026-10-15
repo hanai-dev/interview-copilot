@@ -332,8 +332,9 @@ details summary { cursor: pointer; color: var(--ink-2); margin-bottom: 8px; }
   </form>
 </dialog>
 
+<script src="/static/follow.js"></script>
 <script>
-const $ = (s, el = document) => el.querySelector(s);
+const $ =(s, el = document) => el.querySelector(s);
 const state = { turns: new Map(), answers: new Map(), detections: {}, status: { state: "idle" }, info: null, latestId: null, scale: 1 };
 
 /* ---------------- helpers ---------------- */
@@ -422,6 +423,7 @@ function renderAnswer(a) {
     if (state.latestId && state.latestId !== a.id) document.getElementById(state.latestId)?.classList.remove("latest");
     state.latestId = a.id; el.classList.add("latest");
     list.scrollTop = 0;
+    tpStart(a.id);
   }
   el.querySelector(".q span").textContent = (a.manual ? "You asked: " : "") + a.question;
   const meta = [];
@@ -430,7 +432,69 @@ function renderAnswer(a) {
   const body = el.querySelector(".body");
   body.innerHTML = a.error ? `<p class="err">${esc(a.error)}</p>` + md(a.text || "") : md(a.text || "");
   body.classList.toggle("cursor", !a.done);
+  tpRender(el);
 }
+/* ---------------- phone: follow your voice through the answer ---------------- */
+// On the phone the newest answer works like a teleprompter: as your mic transcript ("Me") comes in,
+// the words you've read dim, the next few light up, and the answer scrolls to keep your place.
+const phoneView = matchMedia("(max-width: 760px)");
+const calmMotion = matchMedia("(prefers-reduced-motion: reduce)");
+const clock = () => performance.now() / 1000;
+const tp = { id: null, spans: [], follower: null, heard: new Map(), on: true };
+const spoken = t => `${t.final || ""} ${t.interim || ""}`.trim().split(/\s+/).filter(Boolean);
+
+function markWords(body) {
+  const texts = [], spans = [];
+  const walk = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+  while (walk.nextNode()) texts.push(walk.currentNode);
+  for (const node of texts) {
+    const frag = document.createDocumentFragment();
+    for (const part of node.textContent.split(/(\s+)/)) {
+      if (!part) continue;
+      if (!Follow.norm(part)) { frag.append(part); continue; }
+      const s = document.createElement("span");
+      s.className = "w"; s.textContent = part;
+      frag.append(s); spans.push(s);
+    }
+    node.replaceWith(frag);
+  }
+  return spans;
+}
+function tpStart(id) {  // a new newest answer: start at its top, ignore words said before it appeared
+  Object.assign(tp, { id, spans: [], follower: null, lastMatch: clock() });
+  tp.heard = new Map([...state.turns.values()].filter(t => t.speaker === "me").map(t => [t.id, spoken(t).length]));
+}
+function tpRender(el) {
+  if (el.id !== tp.id) return;
+  tp.spans = markWords(el.querySelector(".body"));
+  const words = tp.spans.map(s => s.textContent);
+  if (tp.follower) tp.follower.words = words.map(Follow.norm);  // still streaming in
+  else tp.follower = new Follow.Follower(words);
+  tpPaint();
+}
+function tpPaint() {
+  const pos = tp.follower ? tp.follower.pos : 0;
+  tp.spans.forEach((s, i) => { s.classList.toggle("read", i < pos); s.classList.toggle("now", i >= pos && i < pos + 6); });
+}
+function tpHeard(t) {
+  if (t.speaker !== "me" || !tp.follower) return;
+  const words = spoken(t), seen = tp.heard.get(t.id) || 0;
+  tp.heard.set(t.id, words.length);
+  let moved = false;
+  for (const w of words.slice(seen)) moved = tp.follower.feed(w) || moved;
+  if (!moved) return;
+  tp.lastMatch = clock();
+  tpPaint();
+  tpScroll(true);
+}
+function tpScroll(smooth) {  // keep your place about a third of the way down; only ever scroll forward
+  if (!tp.on || !phoneView.matches || !tp.follower) return;
+  const box = $("#answers"), s = tp.spans[Math.min(tp.follower.pos, tp.spans.length - 1)];
+  if (!s) return;
+  const top = box.scrollTop + s.getBoundingClientRect().top - box.getBoundingClientRect().top - box.clientHeight * 0.3;
+  if (top > box.scrollTop + 2) box.scrollTo({ top, behavior: smooth && !calmMotion.matches ? "smooth" : "auto" });
+}
+
 $("#answers").addEventListener("click", e => {
   if (!e.target.matches("[data-copy]")) return;
   const a = state.answers.get(e.target.closest(".answer").id);
@@ -605,7 +669,7 @@ function handle(ev) {
       ev.answers.forEach(a => { state.answers.set(a.id, a); renderAnswer(a); });
       state.status = ev.status; renderStatus(); break;
     case "clear": reset(); break;
-    case "turn": state.turns.set(ev.turn.id, ev.turn); renderTurn(ev.turn); break;
+    case "turn": state.turns.set(ev.turn.id, ev.turn); renderTurn(ev.turn); tpHeard(ev.turn); break;
     case "turn_removed": state.turns.delete(ev.id); document.getElementById(`t${ev.id}`)?.remove(); break;
     case "detector": state.detections[ev.turn_id] = ev.result; renderChip(ev.turn_id); break;
     case "answer_start": { const a = { ...ev.answer, text: "", done: false }; state.answers.set(a.id, a); renderAnswer(a); break; }
