@@ -60,10 +60,11 @@ TELLS = {
     "opener": r"(?im)^\W*(?:great|good|excellent) question|^\W*(?:absolutely|certainly)\b",
     "uncontracted": r"\b(?:I would|I will|I am|it is|that is|do not|does not|did not|is not|are not|cannot"
                     r"|we would|we will|we are|they are|there is|what is|it would|you would)\b",
+    # read verbatim these come out as "p 95", "submission underscore id", "8 a m"
+    "unspeakable": r"\b\w+_\w+\b|\bp\d{2}\b|\b\d+(?:am|pm|ms|s)\b|\be\.g\.|\bi\.e\.|\bvs\.",
 }
 
-JUDGE = """Below is an answer a job candidate gave in a live technical interview: either what they said out loud, \
-or the quick notes they glanced at while talking.
+JUDGE = """Below is exactly what a job candidate said out loud, word for word, in a live technical interview.
 
 How much does it sound like a real person, rather than text written by an AI model? Think about word choice, \
 rhythm, structure and punctuation. 1 = obviously AI-written, 10 = clearly a real person.
@@ -112,10 +113,15 @@ async def generate(core: Core) -> dict[tuple[str, int], str]:
     return answers
 
 
+def spoken(text: str) -> str:
+    """What the candidate actually says: they read the answer out loud, bullets included, word for word."""
+    lines = [re.sub(r"^\s*[-*•]\s*", "", line).replace("**", "").strip() for line in text.splitlines()]
+    return " ".join(line if line[-1:] in ".?!" else line + "." for line in lines if line)
+
+
 async def judge(client: AsyncAnthropic, text: str) -> int:
-    plain = text.replace("**", "")
     r = await client.messages.create(model=JUDGE_MODEL, max_tokens=2000, output_config={"effort": "low"},
-                                     messages=[{"role": "user", "content": JUDGE.format(answer=plain)}])
+                                     messages=[{"role": "user", "content": JUDGE.format(answer=spoken(text))}])
     m = re.search(r"\b(10|[1-9])\b", "".join(getattr(b, "text", "") for b in r.content))
     return int(m.group(1)) if m else 0
 
@@ -146,8 +152,12 @@ async def run(out: Path | None) -> float:
     missing = 2 * len(QUESTIONS) - sum(1 for v in answers.values() if v)
     metric = 100 * sum(total_tells.values()) / max(n_words, 1)
     judged = [s for s in scores.values() if s]
+    by_style = {s: sum(v for (st, _), v in scores.items() if st == s) / len(QUESTIONS) for s in STYLES}
+    first = sorted(a["latency_ms"] for a in core.hub.state.answers.values() if a.get("latency_ms"))
     summary = (f"tells/100w={metric:.2f} human={sum(judged) / max(len(judged), 1):.2f}/10 "
+               f"({', '.join(f'{s} {v:.1f}' for s, v in by_style.items())}) "
                f"facts={grounded}/{len(keys)} missing={missing} words/answer={n_words // max(len(keys), 1)} "
+               f"first-words median={first[len(first) // 2] if first else 0}ms "
                f"by kind={ {k: v for k, v in total_tells.items() if v} }")
     print(summary, file=sys.stderr)
     if out:
