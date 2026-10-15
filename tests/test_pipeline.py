@@ -302,11 +302,11 @@ def test_documents(tmp_path, monkeypatch):
         store.add_file("photo.png", b"123")
     text, trimmed = store.combined()
     assert "Jane Cruz" in text and "FastAPI" in text and not trimmed
+    assert len(DocumentStore(tmp_path).list()) == 2  # persisted
+    store.remove(store.list()[0]["id"])
+    assert len(store.list()) == 1
     import pypdf
     page = types.SimpleNamespace(extract_text=lambda: "Jane\n \nCruz\n \nled  the\nmigration\n\n\n\nEnd")
     monkeypatch.setattr(pypdf, "PdfReader", lambda _: types.SimpleNamespace(pages=[page]))
     store.add_file("cv.pdf", b"%PDF")
     assert "[page 1]\nJane Cruz led the\nmigration\n\nEnd" in store.combined()[0]  # padding gone, text kept
-    assert len(DocumentStore(tmp_path).list()) == 2  # persisted
-    store.remove(store.list()[0]["id"])
-    assert len(store.list()) == 1
