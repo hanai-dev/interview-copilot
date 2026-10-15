@@ -53,6 +53,8 @@ Click **Phone** and scan the QR code with your phone's camera. The phone shows t
 
 Phone browsers try a secure `https://` link first. This app uses plain `http` on your own network, so the browser falls back to it (the app's window notes this once). If your browser is set to always require secure connections, it shows a warning page: tap **Continue**. Because the link is plain `http`, someone else on a public Wi-Fi could in principle see what's sent between the computer and your phone, so use phone access on your own Wi-Fi.
 
+On the phone the app becomes an answers-only teleprompter: a black screen with dim amber text, so it gives off as little light as possible (it won't show up as a bright reflection in glasses; turning your phone's brightness down helps too). While you read an answer out loud, it follows your voice from your microphone transcript: words you've read dim, the next few light up, and the answer scrolls to keep your place a third of the way down. It copes with misheard words and skipped lines, and if you go off-script it keeps moving at your speaking pace, then holds still when you stop. Touch the answer to scroll yourself (following pauses for a few seconds), or tap **Follow** to turn it off and on.
+
 Only this computer and devices that scanned the QR code can open the app; anyone else on the Wi-Fi gets "access denied". To lock out phones you used before, delete `data\phone_key` and restart.
 
 ### Settings worth knowing
