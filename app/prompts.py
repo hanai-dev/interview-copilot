@@ -56,7 +56,7 @@ ANSWER_USER = """{transcript}
 The interviewer's latest turn:
 "{question}"
 
-Write Me's answer now."""
+Write Me's answer now, the way Me would actually say it, not the way a document would put it."""
 
 ANSWER_USER_MANUAL = """{transcript}
 Me needs help with this right now:
