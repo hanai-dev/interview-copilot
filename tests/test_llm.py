@@ -51,7 +51,7 @@ def test_claude_stream_request(tmp_path):
 
     async def run():
         return "".join([t async for t in llm.stream("INSTR", "<my_documents>CV</my_documents>", "Q?",
-                                                    ["Head:", "Interviewer: Hi"])])
+                                                    ["Head:\n", "Interviewer: Hi\n"])])
 
     assert asyncio.run(run()) == "**Hello there.**"
     b = seen["body"]
@@ -89,7 +89,7 @@ def test_openai_stream_retries_without_reasoning_effort(tmp_path):
         api_key="sk-test", max_retries=0, http_client=httpx.AsyncClient(transport=httpx.MockTransport(handler)))
 
     async def run():
-        return "".join([t async for t in llm.stream("INSTR", "DOCS", "Q?", ["Head:", "Me: Hi"])])
+        return "".join([t async for t in llm.stream("INSTR", "DOCS", "Q?", ["Head:\n", "Me: Hi\n"])])
 
     assert asyncio.run(run()) == "Hi you"
     assert calls[0]["reasoning_effort"] == "low" and "reasoning_effort" not in calls[1]

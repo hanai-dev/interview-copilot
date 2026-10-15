@@ -124,6 +124,16 @@ def test_transcript_parts_keep_a_stable_prefix(monkeypatch):
     assert agg.transcript_parts()[0][:len(jumped)] == jumped
 
 
+def test_each_answer_adds_one_history_block():
+    from app.core import Answerer
+    a = Answerer(core=None)
+    assert a._history_blocks(["H", "A"]) == ["H\nA\n"]
+    lines = ["H", "A"] + [f"Me: part {i}" for i in range(30)]  # 30 short turns between two answers
+    assert a._history_blocks(lines) == ["H\nA\n", "".join(f"Me: part {i}\n" for i in range(30))]
+    assert a._history_blocks(lines) == a._history_blocks(lines)  # nothing new: same blocks
+    assert a._history_blocks(["H", "B"]) == ["H\nB\n"]  # window jumped: start over
+
+
 # ---------------------------------------------------------------- question classifier
 @pytest.mark.parametrize("text,expected", [
     ("Can you hear me okay?", "no"),

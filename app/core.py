@@ -126,11 +126,22 @@ class Answerer:
         self.core = core
         self._ids = itertools.count(1)
         self._tasks: set[asyncio.Task] = set()
+        self._sent: list[list[str]] = []  # finished transcript lines, grouped as the last answer sent them
 
     def spawn(self, coro) -> None:
         task = asyncio.create_task(coro)
         self._tasks.add(task)
         task.add_done_callback(self._tasks.discard)
+
+    def _history_blocks(self, lines: list[str]) -> list[str]:
+        """Repeat the last answer's blocks and add one block of lines finished since, so this answer's
+        cache entry is one block after the previous one (the API looks back at most 20 blocks)."""
+        sent = [line for block in self._sent for line in block]
+        if lines[:len(sent)] != sent:  # new session, or the transcript window jumped
+            self._sent, sent = [], []
+        if len(lines) > len(sent):
+            self._sent = [*self._sent, lines[len(sent):]]
+        return ["".join(line + "\n" for line in block) for block in self._sent]
 
     async def handle_turn(self, turn_id: int, text: str, transcript: Transcript, t0: float) -> None:
         """An interviewer turn just ended: decide if it needs an answer, then answer it."""
@@ -188,7 +199,7 @@ class Answerer:
         if not closed and not recent:
             recent = ["(nothing yet)"]
         user = template.format(transcript="".join(line + "\n" for line in recent), question=question)
-        history = [prompts.TRANSCRIPT_HEAD, *closed]
+        history = self._history_blocks([prompts.TRANSCRIPT_HEAD, *closed])
 
         started = False
         buf = ""
