@@ -19,7 +19,14 @@ def extract_text(path: Path) -> str:
         reader = PdfReader(str(path))
         pages = []
         for i, page in enumerate(reader.pages, 1):
-            text = (page.extract_text() or "").strip()
+            # Plain mode often puts every word on its own line (2x the tokens on every answer);
+            # layout mode keeps real lines, minus the alignment padding.
+            try:
+                text = page.extract_text(extraction_mode="layout") or ""
+            except Exception:
+                text = page.extract_text() or ""
+            lines = [re.sub(r"[ \t]+", " ", line).strip() for line in text.splitlines()]
+            text = re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
             if text:
                 pages.append(f"[page {i}]\n{text}")
         return "\n\n".join(pages)
