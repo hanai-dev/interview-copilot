@@ -101,6 +101,29 @@ def test_empty_interim_discarded_and_transcript_text():
     assert agg.transcript() == "Interviewer: Why this company?\nMe: Because I love the product you build."
 
 
+def test_transcript_parts_keep_a_stable_prefix(monkeypatch):
+    from app import turns
+    monkeypatch.setattr(turns, "WINDOW_CHARS", 400)  # ~4 question/answer pairs
+    agg, _, _, _ = make_agg()
+    for i in range(3):
+        agg.handle(res(1, f"Question number {i} about your experience?", final=True))
+        agg.handle(res(0, f"Answer number {i} with plenty of detail.", final=True))
+    closed, recent = agg.transcript_parts()
+    assert closed[0].startswith("Interviewer: Question number 0") and recent == ["Me: Answer number 2 with plenty of detail."]
+    agg.handle(ue(0))
+    closed2, recent2 = agg.transcript_parts()
+    assert closed2[:len(closed)] == closed and recent2 == []  # finished lines only grow at the end
+    for i in range(3, 6):  # overflow: the window jumps forward once, then grows from its new start
+        agg.handle(res(1, f"Question number {i} about your experience?", final=True))
+        agg.handle(res(0, f"Answer number {i} with plenty of detail.", final=True))
+        agg.handle(ue(0))
+    jumped = agg.transcript_parts()[0]
+    assert "Question number 0" not in jumped[0] and sum(len(x) + 1 for x in jumped) <= 400 // 2
+    agg.handle(res(1, "One more question?", final=True))
+    agg.handle(ue(1))
+    assert agg.transcript_parts()[0][:len(jumped)] == jumped
+
+
 # ---------------------------------------------------------------- question classifier
 @pytest.mark.parametrize("text,expected", [
     ("Can you hear me okay?", "no"),

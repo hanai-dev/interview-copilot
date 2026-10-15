@@ -19,6 +19,7 @@ OTHER = {"me": "interviewer", "interviewer": "me"}
 ECHO_WINDOW_S = 12.0
 ECHO_MIN_WORDS = 3
 ECHO_THRESHOLD = 0.6
+WINDOW_CHARS = 16000  # transcript the AI sees; on overflow the oldest half is dropped in one go
 
 
 @dataclass
@@ -51,6 +52,10 @@ class Turn:
         }
 
 
+def _line(turn: Turn) -> str:
+    return f"{'Interviewer' if turn.speaker == 'interviewer' else 'Me'}: {turn.text}"
+
+
 def _words(text: str) -> list[str]:
     return [w.strip(".,!?;:\"'()").lower() for w in text.split() if w.strip(".,!?;:\"'()")]
 
@@ -69,6 +74,7 @@ class Aggregator:
         self.open: dict[str, Optional[Turn]] = {"me": None, "interviewer": None}
         self._recent: dict[str, list[tuple[float, str]]] = {"me": [], "interviewer": []}
         self._next_id = 1
+        self._first_id = 1  # first turn inside the transcript window
         self.echo_count = 0
         self._echo_warned = False
 
@@ -93,19 +99,30 @@ class Aggregator:
                 return t
         return None
 
-    def transcript(self, max_chars: int = 12000) -> str:
-        lines: list[str] = []
-        total = 0
-        for t in reversed(self.turns):
-            text = t.text
-            if not text:
-                continue
-            line = f"{'Interviewer' if t.speaker == 'interviewer' else 'Me'}: {text}"
-            if total + len(line) > max_chars and lines:
+    def transcript(self) -> str:
+        closed, recent = self.transcript_parts()
+        return "\n".join(closed + recent)
+
+    def transcript_parts(self) -> tuple[list[str], list[str]]:
+        """(closed, recent) transcript lines. Closed lines only ever grow at the end, so the AI provider
+        can cache them between answers; the window jumps forward by half rather than sliding per line,
+        which would change the start of the prompt on every answer."""
+        turns = [t for t in self.turns if t.id >= self._first_id and t.text]
+        sizes = [len(_line(t)) + 1 for t in turns]
+        total = sum(sizes)
+        if total > WINDOW_CHARS:
+            drop = 0
+            while total > WINDOW_CHARS // 2 and drop < len(turns) - 1:
+                total -= sizes[drop]
+                drop += 1
+            turns = turns[drop:]
+            self._first_id = turns[0].id
+        closed: list[str] = []
+        for t in turns:
+            if not t.closed:
                 break
-            lines.append(line)
-            total += len(line) + 1
-        return "\n".join(reversed(lines))
+            closed.append(_line(t))
+        return closed, [_line(t) for t in turns[len(closed):]]
 
     # -- internals -----------------------------------------------------
     def _is_echo(self, speaker: str, text: str) -> bool:

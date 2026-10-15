@@ -50,7 +50,8 @@ def test_claude_stream_request(tmp_path):
         api_key="sk-ant-test", http_client=ahttpx.AsyncClient(transport=ahttpx.MockTransport(handler)))
 
     async def run():
-        return "".join([t async for t in llm.stream("INSTR", "<my_documents>CV</my_documents>", "Q?")])
+        return "".join([t async for t in llm.stream("INSTR", "<my_documents>CV</my_documents>", "Q?",
+                                                    ["Head:", "Interviewer: Hi"])])
 
     assert asyncio.run(run()) == "**Hello there.**"
     b = seen["body"]
@@ -58,7 +59,12 @@ def test_claude_stream_request(tmp_path):
     assert b["model"] == "claude-sonnet-5-5" and b["stream"] is True
     assert b["output_config"] == {"effort": "low"}
     assert b["system"][1]["cache_control"] == {"type": "ephemeral"} and "CV" in b["system"][1]["text"]
-    assert b["messages"] == [{"role": "user", "content": "Q?"}]
+    # finished transcript lines: one block each, cached up to the last one; the live part after it
+    assert b["messages"] == [{"role": "user", "content": [
+        {"type": "text", "text": "Head:\n"},
+        {"type": "text", "text": "Interviewer: Hi\n", "cache_control": {"type": "ephemeral"}},
+        {"type": "text", "text": "Q?"},
+    ]}]
 
 
 def test_openai_stream_retries_without_reasoning_effort(tmp_path):
@@ -83,11 +89,12 @@ def test_openai_stream_retries_without_reasoning_effort(tmp_path):
         api_key="sk-test", max_retries=0, http_client=httpx.AsyncClient(transport=httpx.MockTransport(handler)))
 
     async def run():
-        return "".join([t async for t in llm.stream("INSTR", "DOCS", "Q?")])
+        return "".join([t async for t in llm.stream("INSTR", "DOCS", "Q?", ["Head:", "Me: Hi"])])
 
     assert asyncio.run(run()) == "Hi you"
     assert calls[0]["reasoning_effort"] == "low" and "reasoning_effort" not in calls[1]
     assert calls[1]["messages"][0] == {"role": "system", "content": "INSTR\n\nDOCS"}
+    assert calls[1]["messages"][1] == {"role": "user", "content": "Head:\nMe: Hi\nQ?"}
     assert calls[1]["model"] == "gpt-6.1-sol"
 
 

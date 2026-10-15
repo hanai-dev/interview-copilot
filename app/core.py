@@ -16,9 +16,11 @@ from .config import SESSIONS_DIR, UPLOADS_DIR, Settings
 from .demo import DEMO_ANSWER, run_demo
 from .documents import DocumentStore
 from .llm import LLM, LLMError, parse_json_object
-from .turns import Aggregator, Turn
+from .turns import WINDOW_CHARS, Aggregator, Turn
 
 log = logging.getLogger("core")
+
+Transcript = tuple[list[str], list[str]]  # (finished lines, lines still being spoken)
 
 
 class SessionError(RuntimeError):
@@ -130,7 +132,7 @@ class Answerer:
         self._tasks.add(task)
         task.add_done_callback(self._tasks.discard)
 
-    async def handle_turn(self, turn_id: int, text: str, transcript: str, t0: float) -> None:
+    async def handle_turn(self, turn_id: int, text: str, transcript: Transcript, t0: float) -> None:
         """An interviewer turn just ended: decide if it needs an answer, then answer it."""
         hub, llm = self.core.hub, self.core.llm
         verdict = prompts.quick_classify(text)
@@ -146,7 +148,7 @@ class Answerer:
             try:
                 raw = await llm.complete(
                     prompts.DETECT_SYSTEM,
-                    prompts.DETECT_USER.format(transcript=transcript[-3000:], turn=text),
+                    prompts.DETECT_USER.format(transcript="\n".join(transcript[0] + transcript[1])[-3000:], turn=text),
                 )
             except LLMError as e:
                 hub.emit({"type": "detector", "turn_id": turn_id, "result": "error"})
@@ -160,7 +162,7 @@ class Answerer:
         hub.emit({"type": "detector", "turn_id": turn_id, "result": "question"})
         await self.answer(text, label, turn_id, transcript, t0, manual=False)
 
-    async def answer(self, question: str, label: str, turn_id: Optional[int], transcript: str,
+    async def answer(self, question: str, label: str, turn_id: Optional[int], transcript: Transcript,
                      t0: float, manual: bool) -> None:
         core, hub, llm = self.core, self.core.hub, self.core.llm
         aid = f"a{next(self._ids)}"
@@ -182,12 +184,16 @@ class Answerer:
         instructions = prompts.answer_system(s.get("answer_style"), s.get("extra_instructions") or "")
         docs, _ = core.docs.combined()
         template = prompts.ANSWER_USER_MANUAL if manual else prompts.ANSWER_USER
-        user = template.format(transcript=transcript or "(nothing yet)", question=question)
+        closed, recent = transcript
+        if not closed and not recent:
+            recent = ["(nothing yet)"]
+        user = template.format(transcript="".join(line + "\n" for line in recent), question=question)
+        history = [prompts.TRANSCRIPT_HEAD, *closed]
 
         started = False
         buf = ""
         latency_ms = None
-        gen = llm.stream(instructions, prompts.docs_block(docs), user)
+        gen = llm.stream(instructions, prompts.docs_block(docs), user, history)
         try:
             async for chunk in gen:
                 if not started:
@@ -263,7 +269,7 @@ class Session:
             return  # already answered via the fast path and nothing much was added
         turn.answered_words = words
         self.core.answerer.spawn(
-            self.core.answerer.handle_turn(turn.id, turn.final_text, self.aggregator.transcript(), time.perf_counter())
+            self.core.answerer.handle_turn(turn.id, turn.final_text, self.aggregator.transcript_parts(), time.perf_counter())
         )
 
     def _status(self, state: str, message: str = "") -> None:
@@ -413,16 +419,16 @@ class Core:
 
     async def manual_answer(self, question: str = "") -> None:
         """'Answer now' button (latest interviewer turn) or a typed question."""
-        transcript = ""
         turn_id = None
         session = self.session
         if session:
-            transcript = session.aggregator.transcript()
-        else:
-            transcript = "\n".join(
-                f"{'Interviewer' if t['speaker'] == 'interviewer' else 'Me'}: {t['final'] or t['interim']}"
-                for t in self.hub.state.turns.values()
-            )[-12000:]
+            transcript = session.aggregator.transcript_parts()
+        else:  # recording stopped: every turn is finished
+            lines = [f"{'Interviewer' if t['speaker'] == 'interviewer' else 'Me'}: {t['final'] or t['interim']}"
+                     for t in self.hub.state.turns.values()]
+            while len(lines) > 1 and sum(len(line) + 1 for line in lines) > WINDOW_CHARS:
+                lines.pop(0)
+            transcript = (lines, [])
         if question.strip():
             label = question.strip()
         else:

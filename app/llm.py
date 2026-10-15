@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import re
-from typing import AsyncIterator
+from typing import AsyncIterator, Sequence
 
 from .config import Settings
 
@@ -50,7 +50,9 @@ class LLM:
         return {"extra_body": {"output_config": {"effort": effort}}} if effort else {}
 
     # -- streaming answer ---------------------------------------------
-    async def stream(self, instructions: str, docs: str, user: str, max_tokens: int = 700) -> AsyncIterator[str]:
+    async def stream(self, instructions: str, docs: str, user: str, history: Sequence[str] = (),
+                     max_tokens: int = 700) -> AsyncIterator[str]:
+        """history: lines that start the user message and won't change (cached); user follows them."""
         client = self._client()
         model = self.model("answer")
         try:
@@ -61,14 +63,21 @@ class LLM:
                     # answer starts faster and costs less.
                     {"type": "text", "text": docs, "cache_control": {"type": "ephemeral"}},
                 ]
+                # Finished transcript lines are cached too, one block per line, so the next answer
+                # finds this one's cache entry (the API looks back up to 20 blocks for it).
+                content = [{"type": "text", "text": line + "\n"} for line in history]
+                if content:
+                    content[-1]["cache_control"] = {"type": "ephemeral"}
                 async with client.messages.stream(
                     model=model, max_tokens=max_tokens * 3, system=system,
-                    messages=[{"role": "user", "content": user}],
+                    messages=[{"role": "user", "content": [*content, {"type": "text", "text": user}] if content else user}],
                     **self._claude_extra(),
                 ) as s:
                     async for text in s.text_stream:
                         yield text
             else:
+                # OpenAI caches the longest repeated prefix on its own; a stable history keeps it long.
+                user = "".join(line + "\n" for line in history) + user
                 async for text in self._openai_stream(client, model, instructions + "\n\n" + docs, user, max_tokens):
                     yield text
         except LLMError:

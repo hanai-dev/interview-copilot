@@ -36,17 +36,17 @@ DOCS_BLOCK = """<my_documents>
 
 NO_DOCS = "<my_documents>(none uploaded)</my_documents>"
 
-ANSWER_USER = """Live transcript so far (most recent last):
-{transcript}
+# The answer prompt is TRANSCRIPT_HEAD + finished transcript lines (cached, one line each), then
+# one of these templates with the lines still being spoken ({transcript}: one "line\n" each).
+TRANSCRIPT_HEAD = "Live transcript so far (most recent last):"
 
+ANSWER_USER = """{transcript}
 The interviewer's latest turn:
 "{question}"
 
 Write Me's answer now."""
 
-ANSWER_USER_MANUAL = """Live transcript so far (most recent last):
-{transcript}
-
+ANSWER_USER_MANUAL = """{transcript}
 Me needs help with this right now:
 "{question}"
 

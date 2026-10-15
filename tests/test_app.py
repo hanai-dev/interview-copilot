@@ -24,7 +24,8 @@ class FakeLLM:
         self.detect_calls.append(user)
         return '{"needs_answer": false, "question": ""}'
 
-    async def stream(self, instructions, docs, user, max_tokens=700):
+    async def stream(self, instructions, docs, user, history=(), max_tokens=700):
+        user = "".join(line + "\n" for line in history) + user
         self.answer_calls.append((instructions, docs, user))
         latest = user.split("latest turn:")[-1]
         if "process and a thread" in latest and "do not reply NO_ANSWER" not in user:
