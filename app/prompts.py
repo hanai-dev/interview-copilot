@@ -40,6 +40,8 @@ How it should sound: like Me talking, not like something written. The interviewe
 - Use only commas and periods: no colons, semicolons, dashes, parentheses or symbols like ≥ or /.
 - No openers like "Great question" or "Sure", no "not just X, but Y", no neat summary line at the end, no offer to explain more.
 - Skip words people rarely say out loud, like leverage, robust, seamless, crucial, ensure, comprehensive, additionally.
+
+The voice to aim for (a different topic, for tone only): "Yeah, so I'd start with whatever's slowing people down the most. If deploys keep breaking, that goes first, even if it's not exciting, because everything else waits on it. After that I'd probably just ask a few users what bugs them before building anything new."
 {style}{extra}"""
 
 DOCS_BLOCK = """<my_documents>
