@@ -5,14 +5,15 @@ import re
 
 STYLE_RULES = {
     "talking_points": (
-        "Format: first line is a one-sentence headline answer in **bold**. Then 3-5 short bullet "
-        "points (each under 15 words) the candidate can glance at while speaking. About 80 words total."
+        "Format: first line, in **bold**, is the sentence Me would open with, exactly as they'd say it. "
+        "Then 2-4 bullets, each a short cue of a few words in Me's own voice, like notes you'd jot for "
+        "yourself, not full sentences. About 50 words total."
     ),
     "full": (
-        "Format: a natural spoken answer in first person that the candidate could say almost word for "
-        "word. 120-180 words, short paragraphs, no headings."
+        "Format: what Me would actually say out loud in about 45 seconds, word for word, in first person. "
+        "90-130 words, one or two short paragraphs, no headings or lists."
     ),
-    "short": "Format: 2-3 sentences in first person. No lists.",
+    "short": "Format: 2-3 sentences Me would say out loud, in first person. No lists.",
 }
 
 ANSWER_SYSTEM = """You are a real-time interview assistant. The person you help ("Me") is the one being interviewed, live, right now. You see a live transcript where "Interviewer" is the other person and "Me" is the person you help.
