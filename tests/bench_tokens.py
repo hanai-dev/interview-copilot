@@ -125,10 +125,12 @@ async def replay(transcript: Path, docs: list[Path]) -> Recorder:
         chunks = re.findall(r"[^.?!]+[.?!]*", text)
         total = sum(len(c.split()) for c in chunks) or 1
         said = 0
-        for c in chunks:  # Deepgram finalizes phrase by phrase; a question mark can end a turn early
+        for k, c in enumerate(chunks):  # Deepgram finalizes phrase by phrase; a "?" can end a turn early
             said += len(c.split())
             rec.now = start + (end - start) * said / total
             session.aggregator.handle(result(ch, c.strip()))
+            if ch == 0 and k % 2 == 1:  # long answers pause for 1 s+ now and then: Deepgram closes the turn
+                session.aggregator.handle({"type": "UtteranceEnd", "channel": [0, 2], "last_word_end": 0})
             await _drain(core)
         session.aggregator.handle({"type": "UtteranceEnd", "channel": [ch, 2], "last_word_end": 0})
         await _drain(core)
