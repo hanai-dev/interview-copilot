@@ -38,4 +38,6 @@ if [ ! -f .venv/installed.flag ]; then
 fi
 
 # --- start the app (your browser opens automatically) ---
+# python.org's Mac Python has no root certificates, so HTTPS to Deepgram/Claude/OpenAI fails; use the Mac's own
+[ "$(uname)" = Darwin ] && [ -z "$SSL_CERT_FILE" ] && [ -f /etc/ssl/cert.pem ] && export SSL_CERT_FILE=/etc/ssl/cert.pem
 exec .venv/bin/python -m app.server
